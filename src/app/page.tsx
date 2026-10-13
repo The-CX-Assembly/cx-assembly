@@ -1,422 +1,209 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import JoinForm from '@/components/JoinForm';
 import LeaderCard from '@/components/LeaderCard';
-import { getSiteContent, getLeaders, getVoices } from '@/lib/content';
+import { JoinButton } from '@/components/JoinModal';
+import { Accent, Eyebrow } from '@/components/Type';
+import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import { getSiteContent, getLeaders, getSiteSettings } from '@/lib/content';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
 
+function splitLabel(item: string) {
+  const i = item.indexOf(':');
+  return i === -1 ? { title: item, text: '' } : { title: item.slice(0, i).trim(), text: item.slice(i + 1).trim() };
+}
+
+/** "Lead in: Main point." → ['Lead in', 'Main point.'] */
+function splitAtColon(text: string): [string, string] {
+  const i = text.indexOf(':');
+  return i === -1 ? ['', text] : [text.slice(0, i).trim(), text.slice(i + 1).trim()];
+}
+
 export default async function HomePage() {
-  const content = await getSiteContent();
-  const leaders = await getLeaders();
-  const voices = await getVoices();
+  const [content, leaders, settings] = await Promise.all([getSiteContent(), getLeaders(), getSiteSettings()]);
+  const { hero, whyWeExist, philosophy, forLeaders, forPartners, aboutUs } = content;
+
+  const [principleLead, principleBody] = splitAtColon(forPartners.principle);
+  const [beliefLead, belief] = splitAtColon(aboutUs.paragraph3);
+  const credibility = [settings.credibilityText, settings.foundingCount].filter(Boolean);
+  const marqueeRun = [...credibility, ...credibility, ...credibility];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <>
       <Navbar />
 
-      <main style={{ flex: 1 }}>
-        {/* HERO SECTION */}
-        <section
-          className="bg-navy-gradient"
-          style={{
-            position: 'relative',
-            paddingTop: '100px',
-            paddingBottom: '120px',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Subtle background glow effect */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '-15%',
-              right: '-10%',
-              width: '500px',
-              height: '500px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(44, 122, 171, 0.25) 0%, transparent 70%)',
-              filter: 'blur(60px)',
-              pointerEvents: 'none',
-            }}
-          />
+      <main>
+        {/* ── HERO ─────────────────────────────────────────── */}
+        <section className="hero">
+          <Image src="/brand/mark-navy.png" alt="" width={750} height={425} className="hero__mark" priority aria-hidden="true" />
+          <div className="wrap">
+            <h1 className="display hero__title rise">
+              <Accent text={hero.headline} />
+            </h1>
 
-          <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
-              <div style={{ marginBottom: '24px' }}>
-                <span className="badge-pill badge-light">
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-gold)', display: 'inline-block' }} />
-                  Launched on World CX Day 2026 • 50 Founding CX Leaders
-                </span>
+            <div className="hero__foot rise-2">
+              <div className="hero__copy">
+                <p className="lede">{hero.subheadline}</p>
+                <p className="hero__tagline">{hero.tagline}</p>
               </div>
-
-              <h1
-                style={{
-                  fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                  fontWeight: 800,
-                  color: '#FFFFFF',
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.03em',
-                  marginBottom: '24px',
-                }}
-              >
-                {content.hero.headline}
-              </h1>
-
-              <p
-                style={{
-                  fontSize: 'clamp(1.125rem, 2vw, 1.35rem)',
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  lineHeight: 1.6,
-                  marginBottom: '20px',
-                  maxWidth: '780px',
-                  margin: '0 auto 20px',
-                }}
-              >
-                {content.hero.subheadline}
-              </p>
-
-              <p
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  color: 'var(--color-gold)',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  marginBottom: '40px',
-                }}
-              >
-                {content.hero.tagline}
-              </p>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '16px',
-                  justifyContent: 'center',
-                }}
-              >
-                <Link href="#join" className="btn btn-white" style={{ padding: '16px 32px', fontSize: '1rem' }}>
-                  {content.hero.ctaPrimaryText}
+              <div className="hero__actions">
+                <Link href="/founding-50" className="link-arrow">
+                  {hero.ctaSecondaryText}
                 </Link>
-                <Link href="/founding-50" className="btn btn-outline-white" style={{ padding: '16px 32px', fontSize: '1rem' }}>
-                  {content.hero.ctaSecondaryText}
-                </Link>
+                <JoinButton>
+                  {hero.ctaPrimaryText}
+                  <ArrowRight size={16} />
+                </JoinButton>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CREDIBILITY STRIP */}
-        <section
-          style={{
-            background: 'var(--color-bg-alt)',
-            borderTop: '1px solid #E2E8F0',
-            borderBottom: '1px solid #E2E8F0',
-            padding: '36px 0',
-          }}
-        >
-          <div className="container">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '24px',
-                textAlign: 'center',
-              }}
-            >
-              <div>
-                <span style={{ display: 'block', fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                  Oct 6, 2026
-                </span>
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  World CX Day Launch
-                </span>
+        {/* Credibility marquee */}
+        <div className="marquee" role="region" aria-label={credibility.join('. ')}>
+          <div className="marquee__track" aria-hidden="true">
+            {[0, 1].map((group) => (
+              <div key={group} className="marquee__group">
+                {marqueeRun.map((item, i) => (
+                  <span key={i} style={{ display: 'contents' }}>
+                    <span className="marquee__item">{item}</span>
+                    <Image src="/brand/mark-navy.png" alt="" width={750} height={425} className="marquee__sep" />
+                  </span>
+                ))}
               </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '2rem', fontWeight: 800, color: 'var(--color-accent)' }}>
-                  50
-                </span>
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  Founding CX Leaders
-                </span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                  100%
-                </span>
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  Brand-Side Peer Forum
-                </span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '2rem', fontWeight: 800, color: 'var(--color-gold)' }}>
-                  Zero Pitches
-                </span>
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  Pure Collective Thinking
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
 
-        {/* SECTION: WHY WE EXIST */}
-        <section id="why-we-exist" className="section-pad bg-warm-section">
-          <div className="container">
-            <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-              <span className="badge-pill badge-navy" style={{ marginBottom: '16px' }}>
-                {content.whyWeExist.badge}
-              </span>
-              <h2
-                style={{
-                  fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                  fontWeight: 800,
-                  color: 'var(--color-primary)',
-                  lineHeight: 1.25,
-                  marginBottom: '32px',
-                }}
-              >
-                {content.whyWeExist.headline}
+        {/* ── 01 WHY WE EXIST ─────────────────────────────── */}
+        <section id="why-we-exist" className="section">
+          <div className="wrap split">
+            <div className="split__aside">
+              <Eyebrow num="01">{whyWeExist.badge}</Eyebrow>
+            </div>
+            <div className="split__main">
+              <h2 className="h-xl reveal">
+                <Accent text={whyWeExist.headline} />
               </h2>
 
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '20px',
-                  textAlign: 'left',
-                  fontSize: '1.0625rem',
-                  lineHeight: 1.7,
-                  color: 'var(--color-text-body)',
-                }}
-              >
-                <p>{content.whyWeExist.paragraph1}</p>
-                <p>{content.whyWeExist.paragraph2}</p>
-                <p>{content.whyWeExist.paragraph3}</p>
-              </div>
-
-              <div
-                style={{
-                  marginTop: '40px',
-                  padding: '24px 32px',
-                  background: '#FFFFFF',
-                  borderRadius: 'var(--radius-md)',
-                  borderLeft: '4px solid var(--color-primary)',
-                  boxShadow: 'var(--shadow-sm)',
-                  textAlign: 'left',
-                }}
-              >
-                <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                  {content.whyWeExist.conclusion}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION: PHILOSOPHY */}
-        <section className="section-pad" style={{ background: '#FFFFFF' }}>
-          <div className="container">
-            <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 56px' }}>
-              <span className="badge-pill badge-navy" style={{ marginBottom: '16px' }}>
-                {content.philosophy.badge}
-              </span>
-              <h2
-                style={{
-                  fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                  fontWeight: 800,
-                  color: 'var(--color-primary)',
-                  lineHeight: 1.2,
-                }}
-              >
-                {content.philosophy.headline}
-              </h2>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '24px',
-              }}
-            >
-              {content.philosophy.pillars.map((pillar, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: 'var(--color-bg-warm)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '32px 28px',
-                    border: '1px solid rgba(12, 35, 57, 0.08)',
-                    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                  }}
-                  className="philosophy-card"
-                >
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: 'var(--color-primary)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '1.125rem',
-                      marginBottom: '20px',
-                    }}
-                  >
-                    0{idx + 1}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      color: 'var(--color-primary)',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    {pillar.title}
-                  </h3>
-                  <p style={{ color: 'var(--color-text-body)', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                    {pillar.description}
-                  </p>
+              <div className="split" style={{ marginTop: 'clamp(48px, 6vw, 80px)' }}>
+                <div className="split__half-l prose reveal">
+                  <p>{whyWeExist.paragraph1}</p>
+                  <p>{whyWeExist.paragraph2}</p>
                 </div>
+                <div className="split__half-r prose reveal">
+                  <p>{whyWeExist.paragraph3}</p>
+                </div>
+              </div>
+
+              <hr className="rule" style={{ margin: 'clamp(48px, 6vw, 80px) 0 32px' }} />
+              <p className="statement reveal">{whyWeExist.conclusion}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 02 PHILOSOPHY ───────────────────────────────── */}
+        <section className="section section--ink">
+          <div className="wrap">
+            <div className="split" style={{ marginBottom: 'clamp(56px, 7vw, 104px)' }}>
+              <div className="split__aside">
+                <Eyebrow num="02">{philosophy.badge}</Eyebrow>
+              </div>
+              <div className="split__main">
+                <h2 className="h-xl reveal">
+                  <Accent text={philosophy.headline} />
+                </h2>
+                {philosophy.intro && (
+                  <p className="lede reveal" style={{ marginTop: 32, maxWidth: '56ch' }}>
+                    {philosophy.intro}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <ol className="rows">
+              {philosophy.pillars.map((pillar, idx) => (
+                <li key={pillar.title} className="row reveal">
+                  <span className="row__num">0{idx + 1}</span>
+                  <h3 className="row__title">{pillar.title}</h3>
+                  <p className="row__body">{pillar.description}</p>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
-        {/* SECTION: FOR CX LEADERS */}
-        <section id="for-cx-leaders" className="section-pad bg-navy-dark">
-          <div className="container">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: '56px',
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <span className="badge-pill badge-light" style={{ marginBottom: '20px' }}>
-                  {content.forLeaders.badge}
-                </span>
-                <h2
-                  style={{
-                    fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                    fontWeight: 800,
-                    color: '#FFFFFF',
-                    lineHeight: 1.2,
-                    marginBottom: '20px',
-                  }}
-                >
-                  {content.forLeaders.headline}
-                </h2>
-                <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '1.0625rem', lineHeight: 1.6, marginBottom: '24px' }}>
-                  {content.forLeaders.subheadline}
-                </p>
-                <div
-                  style={{
-                    padding: '20px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    borderLeft: '4px solid var(--color-gold)',
-                    marginBottom: '32px',
-                  }}
-                >
-                  <p style={{ color: '#FFFFFF', fontSize: '0.9375rem', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    {content.forLeaders.callout}
-                  </p>
-                </div>
-                <Link href="#join" className="btn btn-accent" style={{ padding: '14px 28px' }}>
-                  {content.forLeaders.ctaText}
-                </Link>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-inverse-muted)', marginTop: '12px' }}>
-                  {content.forLeaders.note}
-                </p>
-              </div>
+        {/* ── 03 FOR CX LEADERS ───────────────────────────── */}
+        <section id="for-cx-leaders" className="section">
+          <div className="wrap split">
+            <div className="split__l5 sticky">
+              <Eyebrow num="03">{forLeaders.badge}</Eyebrow>
+              <h2 className="h-lg" style={{ marginTop: 28 }}>
+                <Accent text={forLeaders.headline} />
+              </h2>
+              <p className="lede" style={{ marginTop: 28 }}>
+                {forLeaders.subheadline}
+              </p>
+              <p style={{ marginTop: 20, fontSize: '1.0625rem', lineHeight: 1.7 }}>{forLeaders.callout}</p>
+            </div>
 
-              {/* What you can expect checklist */}
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: 'var(--radius-xl)',
-                  padding: '36px',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                }}
-              >
-                <h3 style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 700, marginBottom: '24px' }}>
-                  What You Can Expect
-                </h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '18px', padding: 0 }}>
-                  {content.forLeaders.takeaways.map((item, idx) => (
-                    <li key={idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                      <div
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          background: 'rgba(44, 122, 171, 0.3)',
-                          color: '#4A9BD0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          marginTop: '2px',
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
+            <div className="split__r6">
+              <p className="eyebrow" style={{ marginBottom: 24 }}>
+                What You Can Expect
+              </p>
+              <ol className="list">
+                {forLeaders.takeaways.map((item, idx) => {
+                  const { title, text } = splitLabel(item);
+                  return (
+                    <li key={item} className="list__item reveal">
+                      <span className="list__num">0{idx + 1}</span>
+                      <div>
+                        <span className="list__title">{title}</span>
+                        {text && <span className="list__text">{text}</span>}
                       </div>
-                      <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.9375rem', lineHeight: 1.5 }}>
-                        {item}
-                      </span>
                     </li>
-                  ))}
-                </ul>
+                  );
+                })}
+              </ol>
+
+              {forLeaders.closing && (
+                <p className="h-md reveal" style={{ marginTop: 48, maxWidth: '30ch' }}>
+                  {forLeaders.closing}
+                </p>
+              )}
+
+              <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px 28px' }}>
+                <JoinButton>
+                  {forLeaders.ctaText}
+                  <ArrowRight size={16} />
+                </JoinButton>
+                <p className="muted" style={{ fontSize: '0.9375rem', maxWidth: '32ch' }}>
+                  {forLeaders.note}
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* FOUNDING 50 PREVIEW SECTION */}
-        <section className="section-pad bg-warm-section">
-          <div className="container">
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', gap: '20px' }}>
+        {/* ── 04 FOUNDING 50 ──────────────────────────────── */}
+        <section className="section section--paper-2">
+          <div className="wrap">
+            <div className="section-head">
               <div>
-                <span className="badge-pill badge-gold" style={{ marginBottom: '12px' }}>
-                  The Founding Cohort
-                </span>
-                <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.5rem)', fontWeight: 800, color: 'var(--color-primary)' }}>
-                  Meet Our Founding CX Leaders
+                <Eyebrow num="04">The Founding 50</Eyebrow>
+                <h2 className="h-xl reveal" style={{ marginTop: 28 }}>
+                  <Accent text={content.founding50.subheadline} />
                 </h2>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '1.0625rem', marginTop: '6px' }}>
-                  A circle of leaders helping shape the conversations for India’s CX community.
-                </p>
               </div>
-              <Link href="/founding-50" className="btn btn-outline-navy">
-                View All Founding Leaders
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+              <Link href="/founding-50" className="link-arrow">
+                {hero.ctaSecondaryText}
+                <ArrowRight size={16} />
               </Link>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '24px',
-              }}
-            >
+            <div className="people">
               {leaders.slice(0, 4).map((leader) => (
                 <LeaderCard key={leader.id} leader={leader} />
               ))}
@@ -424,162 +211,104 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* SECTION: FOR PARTNERS */}
-        <section id="for-partners" className="section-pad" style={{ background: '#FFFFFF' }}>
-          <div className="container">
-            <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
-              <span className="badge-pill badge-navy" style={{ marginBottom: '16px' }}>
-                {content.forPartners.badge}
-              </span>
-              <h2
-                style={{
-                  fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                  fontWeight: 800,
-                  color: 'var(--color-primary)',
-                  marginBottom: '28px',
-                }}
-              >
-                {content.forPartners.headline}
-              </h2>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '18px',
-                  textAlign: 'left',
-                  fontSize: '1.0625rem',
-                  lineHeight: 1.7,
-                  color: 'var(--color-text-body)',
-                }}
-              >
-                <p>{content.forPartners.paragraph1}</p>
-                <p>{content.forPartners.paragraph2}</p>
-                <p>{content.forPartners.paragraph3}</p>
+        {/* ── 05 FOR PARTNERS ─────────────────────────────── */}
+        <section id="for-partners" className="section section--ink" style={{ overflow: 'hidden' }}>
+          <div className="wrap">
+            <div className="split">
+              <div className="split__aside">
+                <Eyebrow num="05">{forPartners.badge}</Eyebrow>
               </div>
-
-              <div
-                style={{
-                  marginTop: '36px',
-                  padding: '24px',
-                  background: 'rgba(12, 35, 57, 0.04)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid rgba(12, 35, 57, 0.1)',
-                  display: 'inline-block',
-                }}
-              >
-                <p style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                  {content.forPartners.principle}
-                </p>
-              </div>
-
-              <div style={{ marginTop: '36px' }}>
-                <Link href="#join" className="btn btn-primary" style={{ padding: '14px 28px' }}>
-                  Explore Partnership Opportunities
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION: COMMUNITY VOICES */}
-        <section className="section-pad" style={{ background: 'var(--color-bg-alt)' }}>
-          <div className="container">
-            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
-              <span className="badge-pill badge-navy" style={{ marginBottom: '14px' }}>
-                Community Voices
-              </span>
-              <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                Conversations That Matter
+              <h2 className="split__main h-xl reveal">
+                <Accent text={forPartners.headline} />
               </h2>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '24px',
-              }}
-            >
-              {voices.map((voice) => (
-                <div
-                  key={voice.id}
-                  style={{
-                    background: '#FFFFFF',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '36px 30px',
-                    boxShadow: 'var(--shadow-sm)',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <p style={{ fontSize: '1rem', color: 'var(--color-text-body)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: '24px' }}>
-                    “{voice.quote}”
-                  </p>
-                  <div>
-                    <h4 style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                      {voice.name}
-                    </h4>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-accent)' }}>
-                      {voice.designation}
-                    </p>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                      {voice.company}
-                    </p>
-                  </div>
+            <div className="pillars3">
+              {[forPartners.paragraph1, forPartners.paragraph2, forPartners.paragraph3].map((p, i) => (
+                <div key={i} className="pillars3__item reveal">
+                  <span className="row__num">0{i + 1}</span>
+                  <p>{p}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
 
-        {/* SECTION: ABOUT US */}
-        <section className="section-pad" style={{ background: '#FFFFFF' }}>
-          <div className="container">
-            <div style={{ maxWidth: '820px', margin: '0 auto' }}>
-              <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                <span className="badge-pill badge-navy" style={{ marginBottom: '14px' }}>
-                  {content.aboutUs.badge}
-                </span>
-                <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: 800, color: 'var(--color-primary)' }}>
-                  {content.aboutUs.headline}
-                </h2>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', fontSize: '1.0625rem', lineHeight: 1.7, color: 'var(--color-text-body)' }}>
-                <p>{content.aboutUs.paragraph1}</p>
-                <p>{content.aboutUs.paragraph2}</p>
-                <p>{content.aboutUs.paragraph3}</p>
-              </div>
-
-              <div
-                style={{
-                  marginTop: '36px',
-                  padding: '24px 28px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-warm)',
-                  border: '1px solid rgba(12, 35, 57, 0.08)',
-                }}
-              >
-                <p style={{ fontSize: '0.9375rem', color: 'var(--color-primary)', fontWeight: 600, lineHeight: 1.6 }}>
-                  {content.aboutUs.founderNote}
-                </p>
-              </div>
+            <div className="principle reveal">
+              <Image src="/brand/mark-light.png" alt="" width={750} height={425} className="principle__mark" aria-hidden="true" />
+              {principleLead && <p className="eyebrow">{principleLead}</p>}
+              <p className="principle__text">{principleBody}</p>
             </div>
           </div>
         </section>
 
-        {/* SECTION: JOIN / LEAD CAPTURE FORM */}
-        <section id="join" className="section-pad bg-warm-section" style={{ borderTop: '1px solid #E2E8F0' }}>
-          <div className="container">
-            <JoinForm defaultType="cx_leader" />
+        {/* ── 06 ABOUT US ─────────────────────────────────── */}
+        <section id="about" className="section">
+          <div className="wrap">
+            <div className="split">
+              <div className="split__aside">
+                <Eyebrow num="06">{aboutUs.badge}</Eyebrow>
+              </div>
+              <div className="split__main">
+                <h2 className="h-xl reveal">
+                  <Accent text={aboutUs.headline} />
+                </h2>
+                <div className="split" style={{ marginTop: 'clamp(48px, 6vw, 80px)' }}>
+                  <p className="split__half-l lede reveal">{aboutUs.paragraph1}</p>
+                  <p className="split__half-r reveal" style={{ fontSize: '1.0625rem', lineHeight: 1.7 }}>
+                    {aboutUs.paragraph2}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="belief split">
+              <div className="split__aside">
+                <Eyebrow>One shared belief</Eyebrow>
+              </div>
+              <div className="split__main">
+                {beliefLead && (
+                  <p className="muted" style={{ fontSize: '1.0625rem', maxWidth: '60ch' }}>
+                    {beliefLead}:
+                  </p>
+                )}
+                <p className="belief__text reveal">
+                  <mark>{belief}</mark>
+                </p>
+              </div>
+            </div>
+
+            <div className="split">
+              <dl className="split__main facts">
+                <div className="facts__item reveal">
+                  <dt>An initiative of</dt>
+                  <dd>
+                    <strong>The Executive Assembly</strong>
+                    Building trusted, peer-led leadership communities.
+                  </dd>
+                </div>
+                <div className="facts__item reveal">
+                  <dt>Founded by</dt>
+                  <dd>
+                    <strong>Vivek Sheth</strong>
+                    {aboutUs.founderNote.replace(/^.*?Vivek Sheth,?\s*/, '').replace(/^\w/, (c) => c.toUpperCase())}
+                  </dd>
+                </div>
+                <div className="facts__item reveal">
+                  <dt>Sister community</dt>
+                  <dd>
+                    <strong>The CMO Assembly</strong>
+                    <a href="https://thecmoassembly.com/" target="_blank" rel="noopener noreferrer" className="link-arrow">
+                      thecmoassembly.com
+                      <ArrowUpRight size={14} />
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+            </div>
           </div>
         </section>
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

@@ -31,28 +31,25 @@ export const defaultContent: SiteContent = {
     conclusion: "That's why The CX Assembly exists.",
   },
   philosophy: {
-    badge: 'Our Philosophy',
+    badge: 'The Assembly Philosophy',
     headline: 'Less Networking. More Collective Thinking.',
+    intro:
+      'A curated community for senior brand-side CX leaders. The focus is on shared challenges, practical perspectives and mutual learning rather than sales conversations.',
     pillars: [
-      {
-        title: 'A Curated Community for Senior CX Leaders',
-        description:
-          'The focus is exclusively on shared challenges, practical perspectives and mutual learning rather than vendor sales pitches.',
-      },
       {
         title: 'Real Questions. Honest Answers.',
         description:
-          'Success stories are valuable. So are the lessons from what did not work. We encourage candid conversations that go far beyond polished presentations.',
+          "Success stories are valuable. So are the lessons from what didn't work. We encourage candid conversations that go beyond polished presentations.",
       },
       {
         title: 'A Community Beyond Events',
         description:
-          'Meaningful relationships are built over time. The Assembly is designed to foster continuous conversations, peer support and lasting collaboration.',
+          'Meaningful relationships are built over time. The Assembly is designed to encourage continuous conversations, collaboration and peer support.',
       },
       {
         title: 'Shaped by CX Leaders',
         description:
-          'Our members are not just participants. Their perspectives, priorities and day-to-day challenges guide the agenda and direction of the community.',
+          "Our members aren't just participants. Their perspectives, priorities and challenges help shape the direction of the community.",
       },
     ],
   },
@@ -64,44 +61,45 @@ export const defaultContent: SiteContent = {
     callout:
       'Somewhere within this community, another leader may have already navigated something similar. The CX Assembly brings those experiences together.',
     takeaways: [
-      'Peer Perspectives: Exchange ideas and battle-tested experiences with CX leaders across diverse consumer sectors.',
-      'Collective Problem-Solving: Seek candid feedback on strategic challenges, organizational roadblocks, and roadmap decisions.',
-      'Shared Learning: Discuss emerging operational approaches, shifting customer expectations, AI integration, and journey orchestration.',
-      'Trusted Connections: Build deep relationships with fellow leaders who truly understand the everyday realities and pressures of your role.',
-      'A Collective Voice: Help shape meaningful industry dialogues that elevate the importance of customer experience across India.',
+      'Peer Perspectives: Exchange ideas and experiences with CX leaders across industries.',
+      'Collective Problem-Solving: Seek perspectives on strategic challenges and decisions.',
+      'Shared Learning: Discuss emerging approaches, customer expectations, technology and organisational change.',
+      'Trusted Connections: Build relationships with leaders who understand the realities of your role.',
+      'A Collective Voice: Help shape meaningful conversations about the future of customer experience in India.',
     ],
+    closing: 'No pressure to always have an answer. Just a willingness to contribute when it matters.',
     ctaText: 'Apply to Join',
-    note: 'Membership is curated and exclusively for eligible senior brand-side CX leaders.',
+    note: 'Membership is curated for eligible senior brand-side CX leaders.',
   },
   forPartners: {
     badge: 'For Partners',
     headline: 'Meaningful Partnerships. Better Industry Conversations.',
     paragraph1:
-      'The future of customer experience will be shaped through genuine collaboration between leaders, innovators, and organisations committed to elevating customer journeys.',
+      'The future of customer experience will be shaped through collaboration between leaders, innovators and organisations committed to making customer experiences better.',
     paragraph2:
-      'At The CX Assembly, we believe the most valuable partnerships begin with understanding real industry challenges, not selling solutions. We welcome conversations with organisations that bring proven domain expertise, fresh perspectives, and a sincere commitment to advancing CX.',
+      'At The CX Assembly, we believe the most valuable partnerships begin with understanding industry challenges, not selling solutions. We welcome conversations with organisations that bring relevant expertise, fresh perspectives and a genuine commitment to advancing CX.',
     paragraph3:
-      'Through closed-door roundtables, research initiatives, curated discussions, and collaborative formats, we create high-trust opportunities for meaningful ecosystem engagement.',
+      'Through knowledge-sharing initiatives, curated discussions and collaborative formats, we aim to create opportunities for meaningful industry engagement.',
     principle: 'Our principle is simple: Community trust always comes first.',
   },
   aboutUs: {
     badge: 'About Us',
     headline: 'Built Around Leaders. Designed for Conversations That Matter.',
     paragraph1:
-      'The CX Assembly is an initiative of The Executive Assembly, an established platform dedicated to building trusted, peer-led leadership communities across India.',
+      'The CX Assembly is an initiative of The Executive Assembly, a platform dedicated to building trusted, peer-led leadership communities.',
     paragraph2:
-      'Created following the successful establishment of The CMO Assembly, The CX Assembly brings that same dedication to candid, high-value peer exchange into the world of customer experience.',
+      'Created following the establishment of The CMO Assembly, The CX Assembly brings the same commitment to meaningful peer conversations into the world of customer experience.',
     paragraph3:
-      'Each community operates with its own distinct identity and leadership focus, united by one core belief: The most valuable industry conversations happen when leaders feel comfortable being honest, curious, and collaborative.',
+      'Each community operates with its own identity and leadership focus, while sharing one belief: The most valuable industry conversations happen when leaders feel comfortable being honest, curious and collaborative.',
     founderNote:
-      'The Executive Assembly was founded by Vivek Sheth, drawing on more than a decade of experience building premier professional communities and leadership engagement platforms.',
+      'The Executive Assembly was founded by Vivek Sheth, drawing on more than a decade of experience building professional communities and leadership engagement platforms.',
   },
   founding50: {
     headline: 'THE FOUNDING 50',
     subheadline: '50 Leaders. One Shared Belief.',
     leadParagraph: 'CX deserves better conversations.',
     description:
-      'On World CX Day, October 6, 2026, 50 customer experience leaders came together to mark the beginning of The CX Assembly. A collective built on the belief that India’s CX leaders can achieve more when they share experiences, challenge thinking, and support one another. These founding leaders are helping shape not just the community, but also the conversations it stands for.',
+      'On World CX Day, October 6, 2026, 50 customer experience leaders came together to mark the beginning of The CX Assembly.\n\nA collective built on the belief that India’s CX leaders can achieve more when they share experiences, challenge thinking and support one another. These founding leaders are helping shape not just the community, but also the conversations it stands for.',
   },
   privacyPolicy: `
 ### Privacy Policy

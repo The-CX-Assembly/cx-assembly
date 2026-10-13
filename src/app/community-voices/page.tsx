@@ -1,5 +1,8 @@
 import Navbar from '@/components/Navbar';
+import { JoinButton } from '@/components/JoinModal';
 import Footer from '@/components/Footer';
+import { Eyebrow } from '@/components/Type';
+import { ArrowRight } from '@/components/Icons';
 import { getVoices } from '@/lib/content';
 import { Metadata } from 'next';
 
@@ -15,75 +18,57 @@ export default async function CommunityVoicesPage() {
   const voices = await getVoices();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <>
       <Navbar />
 
-      <main style={{ flex: 1 }}>
-        <section className="bg-navy-dark" style={{ paddingTop: '80px', paddingBottom: '80px', textAlign: 'center' }}>
-          <div className="container">
-            <span className="badge-pill badge-gold" style={{ marginBottom: '16px' }}>
-              Unfiltered Perspectives
-            </span>
-            <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, color: '#FFFFFF', marginBottom: '16px' }}>
-              Community Voices
+      <main>
+        <section className="hero">
+          <div className="wrap">
+            <div className="rise">
+              <Eyebrow>Community Voices</Eyebrow>
+            </div>
+            <h1 className="display rise-2" style={{ marginTop: 28, maxWidth: '13ch' }}>
+              Real Questions. <span className="soft">Honest Answers.</span>
             </h1>
-            <p style={{ maxWidth: '720px', margin: '0 auto', fontSize: '1.125rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.6 }}>
-              Real questions, honest reflections, and collective learning from the leaders shaping modern customer journeys in India.
+            <p className="lede rise-3" style={{ marginTop: 40, maxWidth: '52ch' }}>
+              Reflections and lessons from the leaders shaping customer experience in India.
             </p>
           </div>
         </section>
 
-        <section className="section-pad bg-warm-section">
-          <div className="container">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: '32px',
-              }}
-            >
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <ul className="quotes">
               {voices.map((voice) => (
-                <div
-                  key={voice.id}
-                  style={{
-                    background: '#FFFFFF',
-                    borderRadius: 'var(--radius-xl)',
-                    padding: '40px 32px',
-                    boxShadow: 'var(--shadow-md)',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ marginBottom: '24px' }}>
-                    <svg width="32" height="32" fill="var(--color-accent-soft)" viewBox="0 0 24 24" style={{ marginBottom: '16px' }}>
-                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                    </svg>
-                    <p style={{ fontSize: '1.0625rem', color: 'var(--color-text-body)', lineHeight: 1.7, fontStyle: 'italic' }}>
-                      “{voice.quote}”
-                    </p>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '20px' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                      {voice.name}
-                    </h3>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-accent)' }}>
-                      {voice.designation}
-                    </p>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                      {voice.company}
-                    </p>
-                  </div>
-                </div>
+                <li key={voice.id} className="quote reveal">
+                  <span className="quote__mark" aria-hidden="true">
+                    &ldquo;
+                  </span>
+                  <blockquote className="quote__text">{voice.quote}</blockquote>
+                  <p className="quote__by">
+                    <strong>{voice.name}</strong>
+                    {voice.designation}, {voice.company}
+                  </p>
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
+        </section>
+
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="wrap section-head" style={{ marginBottom: 0 }}>
+            <h2 className="h-xl" style={{ maxWidth: '16ch' }}>
+              Add your voice <span className="soft">to the conversation.</span>
+            </h2>
+            <JoinButton>
+              Join The Assembly
+              <ArrowRight size={16} />
+            </JoinButton>
           </div>
         </section>
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

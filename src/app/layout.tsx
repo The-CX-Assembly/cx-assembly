@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from 'next';
+import { Mona_Sans } from 'next/font/google';
 import './globals.css';
 import { defaultSettings } from '@/lib/default-content';
+import { JoinModalProvider } from '@/components/JoinModal';
+
+const monaSans = Mona_Sans({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-mona',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -48,7 +56,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0C2339',
+  themeColor: '#FAFAF4',
   width: 'device-width',
   initialScale: 1,
 };
@@ -78,14 +86,16 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={monaSans.variable}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <JoinModalProvider>{children}</JoinModalProvider>
+      </body>
     </html>
   );
 }

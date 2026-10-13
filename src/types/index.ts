@@ -70,6 +70,7 @@ export interface SectionWhyWeExist {
 export interface SectionPhilosophy {
   badge: string;
   headline: string;
+  intro?: string;
   pillars: Array<{
     title: string;
     description: string;
@@ -82,6 +83,7 @@ export interface SectionForLeaders {
   subheadline: string;
   callout: string;
   takeaways: string[];
+  closing?: string;
   ctaText: string;
   note: string;
 }
