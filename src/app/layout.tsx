@@ -3,6 +3,7 @@ import { Mona_Sans } from 'next/font/google';
 import './globals.css';
 import { defaultSettings } from '@/lib/default-content';
 import { JoinModalProvider } from '@/components/JoinModal';
+import ScrollReset from '@/components/ScrollReset';
 
 const monaSans = Mona_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -86,7 +87,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={monaSans.variable}>
+    <html lang="en" className={monaSans.variable} data-scroll-behavior="smooth">
       <head>
         <script
           type="application/ld+json"
@@ -94,6 +95,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <ScrollReset />
         <JoinModalProvider>{children}</JoinModalProvider>
       </body>
     </html>
