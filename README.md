@@ -73,7 +73,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Site address**: `NEXT_PUBLIC_SITE_URL` in `apphosting.yaml` drives canonical links, the sitemap, `robots.txt` and link previews. It's set to the App Hosting URL; change it when a custom domain (e.g. `thecxassembly.com`) is connected, or previews will point at the old address.
 - **Home page title & description** come from **Settings** in the admin (SEO title / meta description).
-- **Other pages** set theirs with `pageMetadata()` in `src/lib/seo.ts`, which also adds the canonical URL and Open Graph / X (Twitter) previews.
+- **Other pages** are listed in `PAGES` in `src/lib/seo.ts`; `pageMetadata()` gives each its title (`Page - The CX Assembly`), canonical URL, `max-image-preview:large`, and Open Graph / X previews (incl. `og:image:secure_url`), and `pageGraph()` its schema.org WebPage + BreadcrumbList. The root layout adds Organization + WebSite. This mirrors the tag set on thecmoassembly.com.
+- **Icons**: 32×32 and 192×192 favicons, a 180×180 Apple touch icon and a Windows tile in `public/brand/icons/`.
+- **Google Tag Manager / Search Console** (optional): set `NEXT_PUBLIC_GTM_ID` and/or `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` in `apphosting.yaml` (commented examples there). GTM never loads on admin pages.
 - **Preview image**: `public/brand/og-image.png` (1200×630). Replace the file to change what LinkedIn, WhatsApp, X and Slack show.
 - **Admin** pages are `noindex` and disallowed in `robots.txt`, along with `/api/`.
 - After deploying, re-scrape a URL in the [LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/) or [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) to refresh cached previews.

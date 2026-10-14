@@ -20,5 +20,12 @@ env:
   # domain is connected to App Hosting.
   - variable: NEXT_PUBLIC_SITE_URL
     value: https://cx-assembly--the-cx-assembly.us-east4.hosted.app
+  # Optional, uncomment to enable:
+  # Google Tag Manager container for the public site (never loads in /admin).
+  # - variable: NEXT_PUBLIC_GTM_ID
+  #   value: GTM-XXXXXXX
+  # Google Search Console "HTML tag" verification code (content="…" part only).
+  # - variable: NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+  #   value: your-verification-code
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
     value: the-cx-assembly.firebasestorage.app

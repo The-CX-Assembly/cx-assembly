@@ -3,13 +3,10 @@ import Footer from '@/components/Footer';
 import { Eyebrow } from '@/components/Type';
 import { getSiteContent } from '@/lib/content';
 import { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo';
+import { PAGES, pageGraph, pageMetadata } from '@/lib/seo';
+import JsonLd from '@/components/JsonLd';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Privacy Policy',
-  description: 'Privacy Policy and data protection terms for The CX Assembly.',
-  path: '/privacy-policy',
-});
+export const metadata: Metadata = pageMetadata(PAGES.privacyPolicy);
 
 export const revalidate = 60;
 
@@ -71,6 +68,7 @@ export default async function PrivacyPolicyPage() {
 
   return (
     <>
+      <JsonLd data={pageGraph(PAGES.privacyPolicy)} />
       <Navbar />
 
       <main>

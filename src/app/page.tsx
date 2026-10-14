@@ -7,6 +7,9 @@ import { JoinButton } from '@/components/JoinModal';
 import { Accent, Eyebrow } from '@/components/Type';
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@/components/Icons';
 import { getSiteContent, getLeaders, getSiteSettings } from '@/lib/content';
+import { pageGraph } from '@/lib/seo';
+import { defaultSettings } from '@/lib/default-content';
+import JsonLd from '@/components/JsonLd';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
 
@@ -35,6 +38,13 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd
+        data={pageGraph({
+          path: '/',
+          name: settings.siteTitle || defaultSettings.siteTitle,
+          description: settings.metaDescription || defaultSettings.metaDescription,
+        })}
+      />
       <Navbar />
 
       <main>

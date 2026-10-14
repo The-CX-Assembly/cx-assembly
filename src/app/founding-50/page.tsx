@@ -4,13 +4,10 @@ import LeaderCard from '@/components/LeaderCard';
 import { Accent, Eyebrow } from '@/components/Type';
 import { getSiteContent, getLeaders } from '@/lib/content';
 import { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo';
+import { PAGES, pageGraph, pageMetadata } from '@/lib/seo';
+import JsonLd from '@/components/JsonLd';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'The Founding 50 Leaders',
-  description: 'Meet the 50 founding customer experience leaders shaping India’s peer-led CX community.',
-  path: '/founding-50',
-});
+export const metadata: Metadata = pageMetadata(PAGES.founding50);
 
 export const revalidate = 60;
 
@@ -22,6 +19,7 @@ export default async function Founding50Page() {
 
   return (
     <>
+      <JsonLd data={pageGraph(PAGES.founding50)} />
       <Navbar />
 
       <main>

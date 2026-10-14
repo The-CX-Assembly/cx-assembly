@@ -5,14 +5,10 @@ import { Eyebrow } from '@/components/Type';
 import { ArrowRight } from '@/components/Icons';
 import { getVoices } from '@/lib/content';
 import { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo';
+import { PAGES, pageGraph, pageMetadata } from '@/lib/seo';
+import JsonLd from '@/components/JsonLd';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Community Voices',
-  description:
-    'Unfiltered perspectives, lessons, and candid reflections from senior customer experience heads across India.',
-  path: '/community-voices',
-});
+export const metadata: Metadata = pageMetadata(PAGES.communityVoices);
 
 export const revalidate = 60;
 
@@ -21,6 +17,7 @@ export default async function CommunityVoicesPage() {
 
   return (
     <>
+      <JsonLd data={pageGraph(PAGES.communityVoices)} />
       <Navbar />
 
       <main>

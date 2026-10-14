@@ -3,8 +3,10 @@ import { Mona_Sans } from 'next/font/google';
 import './globals.css';
 import { defaultSettings } from '@/lib/default-content';
 import { getSiteSettings } from '@/lib/content';
-import { SITE_NAME, SITE_URL, pageMetadata } from '@/lib/seo';
+import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/lib/seo';
 import { JoinModalProvider } from '@/components/JoinModal';
+import GoogleTagManager from '@/components/GoogleTagManager';
+import JsonLd from '@/components/JsonLd';
 
 const monaSans = Mona_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -17,13 +19,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const description = settings.metaDescription || defaultSettings.metaDescription;
   const homeTitle = settings.siteTitle || defaultSettings.siteTitle;
+  const verification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 
   return {
     ...pageMetadata({ description, path: '/', shareTitle: homeTitle }),
     metadataBase: new URL(SITE_URL),
     title: {
       default: homeTitle,
-      template: `%s | ${SITE_NAME}`,
+      template: `%s - ${SITE_NAME}`,
     },
     applicationName: SITE_NAME,
     keywords: [
@@ -37,9 +40,16 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     authors: [{ name: 'The Executive Assembly' }],
     icons: {
-      icon: '/brand/logo.png',
-      apple: '/brand/logo.png',
+      icon: [
+        { url: '/brand/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
+        { url: '/brand/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      ],
+      apple: [{ url: '/brand/icons/icon-180.png', sizes: '180x180', type: 'image/png' }],
     },
+    // Windows pinned-site tile, as on thecmoassembly.com.
+    other: { 'msapplication-TileImage': `${SITE_URL}/brand/icons/icon-270.png` },
+    // Google Search Console ownership check (the meta-tag method).
+    ...(verification && { verification: { google: verification } }),
   };
 }
 
@@ -55,35 +65,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const settings = await getSiteSettings();
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'The CX Assembly',
-    alternateName: 'CX Assembly',
-    url: SITE_URL,
-    logo: `${SITE_URL}/brand/logo.png`,
-    description: settings.metaDescription || defaultSettings.metaDescription,
-    founder: {
-      '@type': 'Person',
-      name: 'Vivek Sheth',
-    },
-    parentOrganization: {
-      '@type': 'Organization',
-      name: 'The Executive Assembly',
-    },
-    sameAs: [settings.linkedinUrl || defaultSettings.linkedinUrl],
-    ...(settings.contactEmail && { email: settings.contactEmail }),
-  };
 
   return (
-    <html lang="en" className={monaSans.variable}>
+    <html lang="en-IN" className={monaSans.variable}>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        <JsonLd
+          data={siteGraph({
+            description: settings.metaDescription || defaultSettings.metaDescription,
+            linkedinUrl: settings.linkedinUrl || defaultSettings.linkedinUrl,
+            email: settings.contactEmail || undefined,
+          })}
         />
       </head>
       <body>
+        <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
         <JoinModalProvider>{children}</JoinModalProvider>
       </body>
     </html>
