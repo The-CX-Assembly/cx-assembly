@@ -78,18 +78,20 @@ export async function getLeaders(siteId: string = DEFAULT_SITE_ID): Promise<Lead
   if (!db) return sampleFor(siteId, sampleLeaders);
 
   try {
-    const snapshot = await siteCollection(db, siteId, 'leaders')
-      .where('published', '==', true)
-      .orderBy('order', 'asc')
-      .get();
+    // Filtering on published while ordering by order would need a composite
+    // index; without it the query fails, so filter here instead (lists are small).
+    const snapshot = await siteCollection(db, siteId, 'leaders').orderBy('order', 'asc').get();
+    // Samples only stand in for a site that has never added any.
+    if (snapshot.empty) return sampleFor(siteId, sampleLeaders);
 
     const leaders: Leader[] = [];
     snapshot.forEach((doc) => {
-      leaders.push({ id: doc.id, ...(doc.data() as Omit<Leader, 'id'>) });
+      const data = doc.data() as Omit<Leader, 'id'>;
+      if (data.published) leaders.push({ ...data, id: doc.id });
     });
-    return leaders.length > 0 ? leaders : sampleFor(siteId, sampleLeaders);
+    return leaders;
   } catch (error) {
-    console.warn('Error reading leaders from Firestore, using sampleLeaders:', error);
+    console.error('Error reading leaders from Firestore, using sampleLeaders:', error);
     return sampleFor(siteId, sampleLeaders);
   }
 }
@@ -119,18 +121,20 @@ export async function getVoices(siteId: string = DEFAULT_SITE_ID): Promise<Commu
   if (!db) return sampleFor(siteId, sampleVoices);
 
   try {
-    const snapshot = await siteCollection(db, siteId, 'voices')
-      .where('published', '==', true)
-      .orderBy('order', 'asc')
-      .get();
+    // Filtering on published while ordering by order would need a composite
+    // index; without it the query fails, so filter here instead (lists are small).
+    const snapshot = await siteCollection(db, siteId, 'voices').orderBy('order', 'asc').get();
+    // Samples only stand in for a site that has never added any.
+    if (snapshot.empty) return sampleFor(siteId, sampleVoices);
 
     const voices: CommunityVoice[] = [];
     snapshot.forEach((doc) => {
-      voices.push({ id: doc.id, ...(doc.data() as Omit<CommunityVoice, 'id'>) });
+      const data = doc.data() as Omit<CommunityVoice, 'id'>;
+      if (data.published) voices.push({ ...data, id: doc.id });
     });
-    return voices.length > 0 ? voices : sampleFor(siteId, sampleVoices);
+    return voices;
   } catch (error) {
-    console.warn('Error reading voices from Firestore, using sampleVoices:', error);
+    console.error('Error reading voices from Firestore, using sampleVoices:', error);
     return sampleFor(siteId, sampleVoices);
   }
 }
