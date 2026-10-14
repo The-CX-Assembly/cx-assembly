@@ -1,13 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
+import { requireSection } from '@/lib/auth-session';
 import { getSiteSettings } from '@/lib/content';
 import SettingsManager from '@/components/admin/SettingsManager';
 
 export default async function AdminSettingsPage() {
-  const session = await getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  await requireSection('settings');
 
   const settings = await getSiteSettings();
 

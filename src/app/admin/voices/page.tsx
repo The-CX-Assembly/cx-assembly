@@ -1,13 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
+import { requireSection } from '@/lib/auth-session';
 import { getVoices } from '@/lib/content';
 import VoicesManager from '@/components/admin/VoicesManager';
 
 export default async function AdminVoicesPage() {
-  const session = await getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  await requireSection('voices');
 
   const voices = await getVoices();
 

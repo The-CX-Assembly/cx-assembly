@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Leader } from '@/types';
-import { saveLeader, deleteLeader, reorderLeaders } from '@/app/actions/admin';
-import { storage } from '@/lib/firebase-client';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { saveLeader, deleteLeader, reorderLeaders, uploadLeaderPhoto } from '@/app/actions/admin';
 
 export default function LeadersManager({ initialLeaders }: { initialLeaders: Leader[] }) {
   const [leaders, setLeaders] = useState<Leader[]>(initialLeaders);
@@ -34,15 +32,17 @@ export default function LeadersManager({ initialLeaders }: { initialLeaders: Lea
 
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `uploads/leaders/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      setEditingLeader((prev) => (prev ? { ...prev, photoUrl: url } : { photoUrl: url }));
+      const formData = new FormData();
+      formData.append('file', file);
+      const result = await uploadLeaderPhoto(formData);
+      if (result.success) {
+        setEditingLeader((prev) => (prev ? { ...prev, photoUrl: result.url } : { photoUrl: result.url }));
+      } else {
+        alert(result.error);
+      }
     } catch (err) {
-      console.warn('Storage upload error, falling back to local object preview:', err);
-      // Fallback: create an object URL for preview
-      const localUrl = URL.createObjectURL(file);
-      setEditingLeader((prev) => (prev ? { ...prev, photoUrl: localUrl } : { photoUrl: localUrl }));
+      console.warn('Photo upload failed:', err);
+      alert('Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
     }

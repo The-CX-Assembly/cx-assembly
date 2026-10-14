@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { randomUUID } from 'node:crypto';
+import { getAdminBucket, getAdminDb } from '@/lib/firebase-admin';
+import { authorize } from '@/lib/auth-session';
 import { Leader, CommunityVoice, SiteSettings, LeadStatus } from '@/types';
 
 export async function updateLeadStatus(
@@ -9,6 +11,7 @@ export async function updateLeadStatus(
   status: LeadStatus,
   notes?: string
 ) {
+  if (!(await authorize('leads'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -29,6 +32,7 @@ export async function updateSectionContent(
   sectionKey: string,
   data: Record<string, unknown>
 ) {
+  if (!(await authorize('content'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -47,6 +51,7 @@ export async function updateSectionContent(
 }
 
 export async function saveLeader(leader: Omit<Leader, 'id'> & { id?: string }) {
+  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -78,6 +83,7 @@ export async function saveLeader(leader: Omit<Leader, 'id'> & { id?: string }) {
 }
 
 export async function deleteLeader(leaderId: string) {
+  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -93,6 +99,7 @@ export async function deleteLeader(leaderId: string) {
 }
 
 export async function reorderLeaders(orderedIds: string[]) {
+  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -114,6 +121,7 @@ export async function reorderLeaders(orderedIds: string[]) {
 }
 
 export async function saveVoice(voice: Omit<CommunityVoice, 'id'> & { id?: string }) {
+  if (!(await authorize('voices'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -135,6 +143,7 @@ export async function saveVoice(voice: Omit<CommunityVoice, 'id'> & { id?: strin
 }
 
 export async function deleteVoice(voiceId: string) {
+  if (!(await authorize('voices'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -150,6 +159,7 @@ export async function deleteVoice(voiceId: string) {
 }
 
 export async function updateSiteSettings(settings: Partial<SiteSettings>) {
+  if (!(await authorize('settings'))) return { success: false, error: 'You don’t have access to this section.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -161,5 +171,37 @@ export async function updateSiteSettings(settings: Partial<SiteSettings>) {
   } catch (error) {
     console.error('Error updating site settings:', error);
     return { success: false, error: 'Failed to update settings' };
+  }
+}
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+/** Uploads a leader headshot through the server so access rules apply. */
+export async function uploadLeaderPhoto(
+  formData: FormData,
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) return { success: false, error: 'Choose an image to upload.' };
+  if (!file.type.startsWith('image/')) return { success: false, error: 'Only image files can be uploaded.' };
+  if (file.size > MAX_UPLOAD_BYTES) return { success: false, error: 'Images must be under 5 MB.' };
+
+  const bucket = getAdminBucket();
+  if (!bucket) return { success: false, error: 'Storage not connected' };
+
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+    const path = `uploads/leaders/${Date.now()}_${safeName}`;
+    const token = randomUUID();
+    await bucket.file(path).save(Buffer.from(await file.arrayBuffer()), {
+      contentType: file.type,
+      metadata: { metadata: { firebaseStorageDownloadTokens: token } },
+    });
+    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+    return { success: true, url };
+  } catch (error) {
+    console.error('Error uploading leader photo:', error);
+    return { success: false, error: 'Upload failed' };
   }
 }

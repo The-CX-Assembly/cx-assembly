@@ -1,13 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
+import { requireSection } from '@/lib/auth-session';
 import { getSiteContent } from '@/lib/content';
 import ContentEditor from '@/components/admin/ContentEditor';
 
 export default async function AdminContentPage() {
-  const session = await getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  await requireSection('content');
 
   const content = await getSiteContent();
 

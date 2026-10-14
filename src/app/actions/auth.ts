@@ -1,32 +1,70 @@
 'use server';
 
-import { redirect } from 'next/navigation';
+import { z } from 'zod';
 import { setAdminSession, clearAdminSession } from '@/lib/auth-session';
+import { ensureAuthAccount, getAdminUser, recordLogin } from '@/lib/admin-users';
+import { homePathFor } from '@/lib/admin-sections';
+import { getAdminAuth, hasAdminCredentials } from '@/lib/firebase-admin';
+import { redirect } from 'next/navigation';
 
-export async function loginAdminAction(prevState: { error?: string } | null, formData: FormData) {
-  const email = formData.get('email')?.toString().trim();
-  const password = formData.get('password')?.toString().trim();
+/**
+ * Exchanges a Firebase ID token (from Google or email/password sign-in in the
+ * browser) for an admin session, if that email has been granted access.
+ */
+export async function completeSignIn(idToken: string): Promise<{ error?: string; redirectTo?: string }> {
+  const auth = getAdminAuth();
+  if (!auth) return { error: 'Sign-in is unavailable right now. Please try again shortly.' };
 
-  if (!email || !password) {
-    return { error: 'Please enter both email and password.' };
+  let email: string | undefined;
+  try {
+    const decoded = await auth.verifyIdToken(idToken);
+    if (!decoded.email_verified) {
+      return { error: 'This email address has not been verified.' };
+    }
+    email = decoded.email;
+  } catch (e) {
+    console.warn('ID token verification failed:', e);
+    return { error: 'We could not verify your sign-in. Please try again.' };
   }
 
-  // Check admin authorization
-  // Allows the project owner (abhishekroks12345@gmail.com / admin)
-  // or password configured via ADMIN_PASSWORD or fallback during initial setup
-  const allowedEmail = 'abhishekroks12345@gmail.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'CXAssembly2026!';
+  if (!email) return { error: 'Your account has no email address.' };
 
-  const isAuthorized =
-    (email.toLowerCase() === allowedEmail.toLowerCase() && (password === adminPassword || password.length >= 8)) ||
-    (email.toLowerCase() === 'admin@thecxassembly.com' && password === adminPassword);
-
-  if (!isAuthorized) {
-    return { error: 'Invalid admin credentials or unauthorized account.' };
+  const user = await getAdminUser(email);
+  if (!user || !user.active) {
+    return { error: `${email} doesn't have access to the admin console. Ask a super admin to invite you.` };
   }
 
-  await setAdminSession(email);
-  redirect('/admin');
+  try {
+    await setAdminSession(user.email);
+  } catch (e) {
+    console.error('Could not start admin session:', e);
+    return { error: 'The server is missing its session secret (ADMIN_SESSION_SECRET).' };
+  }
+
+  await recordLogin(user.email);
+  return { redirectTo: homePathFor(user) };
+}
+
+const emailSchema = z.string().trim().toLowerCase().email();
+
+/**
+ * Before the browser asks Firebase to email a password link, make sure an
+ * account exists for invited users. Always succeeds so it can't be used to
+ * probe which emails have access.
+ */
+export async function preparePasswordSetup(rawEmail: string): Promise<{ ok: true }> {
+  const parsed = emailSchema.safeParse(rawEmail);
+  if (!parsed.success || !hasAdminCredentials()) return { ok: true };
+
+  const user = await getAdminUser(parsed.data);
+  if (user?.active) {
+    try {
+      await ensureAuthAccount(user.email, user.name);
+    } catch (e) {
+      console.warn('Could not prepare password setup:', e);
+    }
+  }
+  return { ok: true };
 }
 
 export async function logoutAdminAction() {

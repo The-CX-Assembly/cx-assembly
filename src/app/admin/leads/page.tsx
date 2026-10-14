@@ -1,28 +1,18 @@
-import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { requireSection } from '@/lib/auth-session';
+import { getAllLeads } from '@/lib/admin-stats';
 import LeadsManager from '@/components/admin/LeadsManager';
-import { Lead } from '@/types';
 
-export default async function AdminLeadsPage() {
-  const session = await getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+export default async function AdminLeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
+  await requireSection('leads');
 
-  const db = getAdminDb();
-  const leads: Lead[] = [];
+  const { q } = await searchParams;
+  const initialSearch = (Array.isArray(q) ? q[0] : q) ?? '';
 
-  if (db) {
-    try {
-      const snap = await db.collection('leads').orderBy('createdAt', 'desc').get();
-      snap.forEach((doc) => {
-        leads.push({ id: doc.id, ...(doc.data() as Omit<Lead, 'id'>) });
-      });
-    } catch (e) {
-      console.warn('Error fetching all leads:', e);
-    }
-  }
+  const leads = await getAllLeads();
 
   return (
     <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
@@ -35,7 +25,8 @@ export default async function AdminLeadsPage() {
         </p>
       </div>
 
-      <LeadsManager initialLeads={leads} />
+      {/* Keyed so a new search from the top bar resets the filter state. */}
+      <LeadsManager key={initialSearch} initialLeads={leads} initialSearch={initialSearch} />
     </div>
   );
 }

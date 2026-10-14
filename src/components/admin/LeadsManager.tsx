@@ -4,9 +4,15 @@ import { useState } from 'react';
 import { Lead, LeadStatus } from '@/types';
 import { updateLeadStatus } from '@/app/actions/admin';
 
-export default function LeadsManager({ initialLeads }: { initialLeads: Lead[] }) {
+export default function LeadsManager({
+  initialLeads,
+  initialSearch = '',
+}: {
+  initialLeads: Lead[];
+  initialSearch?: string;
+}) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);

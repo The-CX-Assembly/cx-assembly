@@ -1,3 +1,5 @@
+import type { AdminRole, AdminSection } from '@/lib/admin-sections';
+
 export type InterestType = 'cx_leader' | 'partner' | 'other';
 export type LeadStatus = 'new' | 'reviewed' | 'approved' | 'rejected';
 
@@ -122,4 +124,18 @@ export interface SiteContent {
   aboutUs: SectionAboutUs;
   founding50: SectionFounding50;
   privacyPolicy: string;
+}
+
+export interface AdminUser {
+  email: string;
+  name: string;
+  role: AdminRole;
+  sections: AdminSection[];
+  active: boolean;
+  /** Super admins defined in code; they can't be edited or removed from the UI. */
+  builtIn?: boolean;
+  createdAt?: string;
+  createdBy?: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
 }

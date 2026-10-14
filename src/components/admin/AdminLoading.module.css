@@ -1,0 +1,65 @@
+.wrap {
+  padding: 28px 32px 56px;
+  max-width: 1480px;
+  margin: 0 auto;
+  animation: appear 0.3s ease 0.08s backwards;
+}
+
+@keyframes appear {
+  from { opacity: 0; }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.bone {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ECEEF3 0%, #F6F7FA 40%, #ECEEF3 80%) 0 0 / 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -50% 0; }
+}
+
+.eyebrow { width: 160px; height: 12px; }
+.title { width: min(380px, 70%); height: 30px; }
+.sub { width: min(300px, 55%); height: 14px; }
+
+.card {
+  height: 220px;
+  border-radius: 18px;
+}
+
+.wide {
+  grid-column: 1 / -1;
+  height: 150px;
+}
+
+.tall {
+  height: 340px;
+}
+
+@media (max-width: 1240px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .wrap { padding: 20px 16px 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone { animation: none; }
+}
