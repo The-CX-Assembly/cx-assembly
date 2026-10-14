@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Hide the "N" dev-tools badge in local development (never shown in production).
+  // Compile and runtime errors still appear.
+  devIndicators: false,
   images: {
     remotePatterns: [
       {
