@@ -3,17 +3,20 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import JoinForm from '@/components/JoinForm';
 
-const JoinModalContext = createContext<{ openJoin: () => void }>({ openJoin: () => {} });
+const JoinModalContext = createContext<{ openJoin: (source: string) => void }>({ openJoin: () => {} });
 
 /**
  * Site-wide membership popup. Any <JoinButton> opens it, and so does a URL
- * ending in #join (kept so older links and bookmarks still work).
+ * ending in #join (kept so older links and bookmarks still work). The button's
+ * `source` is saved with the lead so the inbox shows which CTA converted.
  */
 export function JoinModalProvider({ children }: { children: React.ReactNode }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [open, setOpen] = useState(false);
+  const [source, setSource] = useState<string | null>(null);
+  const open = source !== null;
 
-  const openJoin = useCallback(() => setOpen(true), []);
+  const openJoin = useCallback((from: string) => setSource(from), []);
+  const close = useCallback(() => setSource(null), []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -28,7 +31,7 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fromHash = () => {
       if (window.location.hash === '#join') {
-        setOpen(true);
+        setSource('join-link');
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }
     };
@@ -45,16 +48,16 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
         ref={dialogRef}
         className="join-dialog"
         aria-labelledby="join-title"
-        onClose={() => setOpen(false)}
+        onClose={close}
         onClick={(e) => {
           // Clicks on the backdrop land on the <dialog> element itself
-          if (e.target === e.currentTarget) setOpen(false);
+          if (e.target === e.currentTarget) close();
         }}
       >
         <div className="join-dialog__panel section--ink">
           <div className="join-dialog__top">
             <p className="eyebrow">The CX Assembly</p>
-            <button type="button" className="dialog__close" onClick={() => setOpen(false)} style={{ margin: 0, color: 'var(--on-ink)' }}>
+            <button type="button" className="dialog__close" onClick={close} style={{ margin: 0, color: 'var(--on-ink)' }}>
               Close <span aria-hidden="true">✕</span>
             </button>
           </div>
@@ -66,7 +69,7 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
             Only for brand side CX Heads.
           </p>
 
-          <div style={{ marginTop: 'clamp(32px, 6vh, 56px)' }}>{open && <JoinForm />}</div>
+          <div style={{ marginTop: 'clamp(32px, 6vh, 56px)' }}>{open && <JoinForm source={source} />}</div>
         </div>
       </dialog>
     </JoinModalContext.Provider>
@@ -75,10 +78,13 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
 
 export function JoinButton({
   children,
+  source,
   className = 'cta cta--solid',
   onClick,
 }: {
   children: React.ReactNode;
+  /** Which CTA this is, e.g. "hero" or "navbar"; stored with the lead. */
+  source: string;
   className?: string;
   onClick?: () => void;
 }) {
@@ -88,9 +94,10 @@ export function JoinButton({
       type="button"
       className={className}
       aria-haspopup="dialog"
+      data-cta={source}
       onClick={() => {
         onClick?.();
-        openJoin();
+        openJoin(source);
       }}
     >
       {children}

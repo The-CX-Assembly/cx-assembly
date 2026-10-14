@@ -4,15 +4,20 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { selectAdminSite } from '@/app/actions/sites';
+import { ALL_SITES } from '@/lib/site-constants';
+import type { SiteModule } from '@/types';
 import { logoutAdminAction } from '@/app/actions/auth';
 import type { ShellLead } from '@/lib/admin-stats';
 import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/lib/admin-sections';
 import {
   IconBell,
+  IconCheck,
   IconChevronDown,
   IconClose,
   IconEdit,
   IconExternal,
+  IconGlobe,
   IconGrid,
   IconInbox,
   IconLogout,
@@ -26,10 +31,23 @@ import {
   IconUsers,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
+
+/** "The CX Assembly" → "CA" */
+const siteInitials = (name: string) => initials(name.replace(/^the\s+/i, ''));
 import styles from './AdminShell.module.css';
+
+export interface ShellSite {
+  id: string;
+  name: string;
+  url?: string;
+  modules: SiteModule[];
+}
 
 interface AdminShellProps {
   user: AdminAccess & { email: string; name: string };
+  sites: ShellSite[];
+  /** The website being managed; null means all websites. */
+  siteId: string | null;
   newLeadsCount: number;
   leaderCount: number;
   voiceCount: number;
@@ -38,12 +56,13 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
-const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' }[] = [
+const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' | 'sites' }[] = [
   { label: 'Dashboard', href: '/admin', section: 'dashboard' },
   { label: 'Leads', href: '/admin/leads', section: 'leads' },
   { label: 'Leaders', href: '/admin/leaders', section: 'leaders' },
   { label: 'Voices', href: '/admin/voices', section: 'voices' },
   { label: 'Content', href: '/admin/content', section: 'content' },
+  { label: 'Websites', href: '/admin/sites', section: 'sites' },
   { label: 'Users', href: '/admin/users', section: 'users' },
 ];
 
@@ -53,6 +72,8 @@ function isActive(pathname: string, href: string) {
 
 export default function AdminShell({
   user,
+  sites,
+  siteId,
   newLeadsCount,
   leaderCount,
   voiceCount,
@@ -66,12 +87,14 @@ export default function AdminShell({
   // Desktop sidebar starts as an icon-only rail.
   const [collapsed, setCollapsed] = useState(true);
   const [recentOpen, setRecentOpen] = useState(true);
-  const [menu, setMenu] = useState<'notifications' | 'user' | null>(null);
+  const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | null>(null);
+  const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
 
   const tabsRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const siteMenuRef = useRef<HTMLDivElement>(null);
 
   // Slide the tab underline under the active tab (and keep it there on resize).
   useLayoutEffect(() => {
@@ -100,7 +123,8 @@ export default function AdminShell({
   useEffect(() => {
     if (!menu) return;
     const onPointer = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(null);
+      const target = e.target as Node;
+      if (!menuRef.current?.contains(target) && !siteMenuRef.current?.contains(target)) setMenu(null);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenu(null);
@@ -114,8 +138,12 @@ export default function AdminShell({
   }, [menu]);
 
   const isSuperadmin = user.role === 'superadmin';
-  const allowed = (section: AdminSection | 'users') =>
-    section === 'users' ? isSuperadmin : canAccess(user, section);
+  const site = sites.find((s) => s.id === siteId) ?? null;
+  // Leaders and testimonials only exist on websites that use them.
+  const hasModule = (section: AdminSection | 'users' | 'sites') =>
+    (section !== 'leaders' && section !== 'voices') || Boolean(site?.modules.includes(section));
+  const allowed = (section: AdminSection | 'users' | 'sites') =>
+    (section === 'users' || section === 'sites' ? isSuperadmin : canAccess(user, section)) && hasModule(section);
   const canLeads = allowed('leads');
   const topTabs = TOP_TABS.filter((tab) => allowed(tab.section));
 
@@ -126,8 +154,19 @@ export default function AdminShell({
     { label: 'Community Voices', href: '/admin/voices', icon: IconQuote, section: 'voices' as const, badge: voiceCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
+    { label: 'Websites', href: '/admin/sites', icon: IconGlobe, section: 'sites' as const },
     { label: 'Users & Access', href: '/admin/users', icon: IconShield, section: 'users' as const },
   ].filter((item) => allowed(item.section));
+
+  const switchSite = async (id: string) => {
+    setMenu(null);
+    if (id === (siteId ?? ALL_SITES)) return;
+    setSwitching(true);
+    const res = await selectAdminSite(id);
+    setSwitching(false);
+    if (!res.success) alert(res.error);
+    router.refresh();
+  };
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,6 +210,68 @@ export default function AdminShell({
           >
             <IconSidebar size={20} />
           </button>
+
+          <div className={styles.dropdownWrap} ref={siteMenuRef}>
+            <button
+              type="button"
+              className={styles.siteButton}
+              onClick={() => setMenu(menu === 'site' ? null : 'site')}
+              aria-expanded={menu === 'site'}
+              aria-haspopup="menu"
+              aria-label={`Website: ${site?.name ?? 'All websites'}. Change website`}
+              disabled={switching}
+            >
+              <span className={styles.siteMark}>{site ? siteInitials(site.name) : <IconGlobe size={16} />}</span>
+              <span className={styles.siteText}>
+                <small>{switching ? 'Switching…' : 'Website'}</small>
+                <strong>{site?.name ?? 'All websites'}</strong>
+              </span>
+              <IconChevronDown size={16} className={`${styles.chevron} ${menu === 'site' ? styles.chevronOpen : ''}`} />
+            </button>
+            {menu === 'site' && (
+              <div className={`${styles.dropdown} ${styles.dropdownLeft}`} role="menu">
+                <div className={styles.dropdownHead}>
+                  <strong>Manage website</strong>
+                  <span>{sites.length}</span>
+                </div>
+                {sites.length > 1 && (
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={siteId === null}
+                    className={`${styles.menuItem} ${styles.siteOption}`}
+                    onClick={() => switchSite(ALL_SITES)}
+                  >
+                    <IconGlobe size={16} />
+                    <span>All websites</span>
+                    {siteId === null && <IconCheck size={16} />}
+                  </button>
+                )}
+                {sites.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={s.id === siteId}
+                    className={`${styles.menuItem} ${styles.siteOption}`}
+                    onClick={() => switchSite(s.id)}
+                  >
+                    <span className={styles.siteMark} style={{ width: 24, height: 24, borderRadius: 7, fontSize: '0.625rem' }}>
+                      {siteInitials(s.name)}
+                    </span>
+                    <span>{s.name}</span>
+                    {s.id === siteId && <IconCheck size={16} />}
+                  </button>
+                ))}
+                {isSuperadmin && (
+                  <Link href="/admin/sites" className={styles.dropdownFoot} onClick={() => setMenu(null)}>
+                    Add or manage websites →
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+
           {canLeads && (
             <form className={styles.search} onSubmit={onSearch} role="search">
               <IconSearch size={16} />
@@ -274,9 +375,11 @@ export default function AdminShell({
                     <span className={styles.userEmail}>{user.email}</span>
                     <span className={styles.roleTag}>{ROLE_LABEL[user.role]}</span>
                   </div>
-                  <a href="/" target="_blank" rel="noopener noreferrer" className={styles.menuItem} role="menuitem">
-                    <IconExternal size={16} /> View live site
-                  </a>
+                  {site?.url && (
+                    <a href={site.url} target="_blank" rel="noopener noreferrer" className={styles.menuItem} role="menuitem">
+                      <IconExternal size={16} /> View {site.name}
+                    </a>
+                  )}
                   {isSuperadmin && (
                     <Link href="/admin/users" className={styles.menuItem} role="menuitem" onClick={() => setMenu(null)}>
                       <IconShield size={16} /> Users &amp; access

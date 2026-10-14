@@ -21,7 +21,7 @@ export default function Footer() {
             </p>
             <p style={{ marginTop: 12 }}>An initiative of The Executive Assembly.</p>
             <div style={{ marginTop: 32 }}>
-              <JoinButton className="cta cta--light">
+              <JoinButton source="footer" className="cta cta--light">
                 Join The Assembly
                 <ArrowRight size={16} />
               </JoinButton>

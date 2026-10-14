@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { usePathname } from 'next/navigation';
 import { submitLead, SubmitLeadState } from '@/app/actions/leads';
 import { ArrowRight } from '@/components/Icons';
 
@@ -13,8 +14,10 @@ const FIELDS = [
   { name: 'email', label: 'Work email', type: 'email', placeholder: 'name@company.com', autoComplete: 'email' },
 ] as const;
 
-export default function JoinForm() {
+/** Only mounted once the dialog opens, so it always renders in the browser. */
+export default function JoinForm({ source }: { source: string }) {
   const [state, formAction, isPending] = useActionState(submitLead, initialState);
+  const pathname = usePathname();
 
   if (state.success) {
     return (
@@ -32,6 +35,9 @@ export default function JoinForm() {
   return (
     <form action={formAction} className="form" noValidate>
       <input type="hidden" name="type" value="cx_leader" />
+      <input type="hidden" name="source_cta" value={source} />
+      <input type="hidden" name="source_page" value={pathname} />
+      <input type="hidden" name="source_referrer" value={document.referrer} />
 
       {/* Honeypot */}
       <div className="sr-only" aria-hidden="true">
@@ -53,6 +59,8 @@ export default function JoinForm() {
               required
               placeholder={f.placeholder}
               autoComplete={f.autoComplete}
+              // React resets the form after submitting; this restores what was typed on errors.
+              defaultValue={state.values?.[f.name]}
               className="field__input"
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${f.name}-error` : undefined}

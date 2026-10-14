@@ -1,13 +1,22 @@
 'use server';
 
 import { leadSchema } from '@/lib/validation';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { saveLead } from '@/lib/leads';
+import { DEFAULT_SITE_ID } from '@/lib/site-constants';
 
 export interface SubmitLeadState {
   success?: boolean;
   message?: string;
   errors?: Record<string, string[]>;
+  /** Echoed back on failure: React resets the form after every submission. */
+  values?: Record<string, string>;
 }
+
+const field = (formData: FormData, name: string, max = 300) =>
+  (formData.get(name)?.toString() || '').trim().slice(0, max);
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const echo = ({ honeypot, ...values }: Record<string, string>) => values;
 
 export async function submitLead(
   prevState: SubmitLeadState | null,
@@ -33,6 +42,7 @@ export async function submitLead(
       success: false,
       message: 'Please review and correct the errors below.',
       errors: fieldErrors,
+      values: echo(rawData),
     };
   }
 
@@ -47,20 +57,23 @@ export async function submitLead(
     };
   }
 
-  const db = getAdminDb();
-  if (db) {
-    try {
-      await db.collection('leads').add({
-        ...validLead,
-        status: 'new',
-        createdAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Error writing lead to Firestore:', error);
-      // Even if Firestore fails temporarily in offline dev, don't break the client UX
-    }
-  } else {
-    console.info('Local dev lead submission (no Admin DB configured):', validLead);
+  const saved = await saveLead({
+    ...validLead,
+    siteId: DEFAULT_SITE_ID,
+    source: {
+      cta: field(formData, 'source_cta', 80),
+      page: field(formData, 'source_page'),
+      referrer: field(formData, 'source_referrer', 500),
+    },
+  });
+
+  if (!saved.ok) {
+    return {
+      success: false,
+      message:
+        'Sorry, we couldn’t submit your application just now. Please try again in a moment, or email us at contact@thecxassembly.com.',
+      values: echo(rawData),
+    };
   }
 
   return {

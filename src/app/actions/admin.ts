@@ -4,14 +4,31 @@ import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'node:crypto';
 import { getAdminBucket, getAdminDb } from '@/lib/firebase-admin';
 import { authorize } from '@/lib/auth-session';
-import { Leader, CommunityVoice, SiteSettings, LeadStatus } from '@/types';
+import { getSite, siteCollection } from '@/lib/sites';
+import { DEFAULT_SITE_ID } from '@/lib/site-constants';
+import { Leader, CommunityVoice, SiteSettings, LeadStatus, ContentFieldValue } from '@/types';
+
+const NO_ACCESS = 'You don’t have access to this section.';
+
+/**
+ * Refreshes the admin page and, for the website this app renders, the public
+ * pages showing that data. Other websites fetch from the API on their own schedule.
+ */
+function revalidateSite(siteId: string, adminPath: string, publicPaths: string[]) {
+  revalidatePath(adminPath);
+  if (siteId === DEFAULT_SITE_ID) publicPaths.forEach((p) => revalidatePath(p));
+}
+
+async function knownSite(siteId: string) {
+  return typeof siteId === 'string' && (await getSite(siteId)) !== null;
+}
 
 export async function updateLeadStatus(
   leadId: string,
   status: LeadStatus,
   notes?: string
 ) {
-  if (!(await authorize('leads'))) return { success: false, error: 'You don’t have access to this section.' };
+  if (!(await authorize('leads'))) return { success: false, error: NO_ACCESS };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
@@ -28,21 +45,18 @@ export async function updateLeadStatus(
   }
 }
 
+/** Saves one section of the original website's typed page copy. */
 export async function updateSectionContent(
   sectionKey: string,
   data: Record<string, unknown>
 ) {
-  if (!(await authorize('content'))) return { success: false, error: 'You don’t have access to this section.' };
+  if (!(await authorize('content'))) return { success: false, error: NO_ACCESS };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
-    await db.collection('siteContent').doc(sectionKey).set(data, { merge: true });
-    revalidatePath('/');
-    revalidatePath('/founding-50');
-    revalidatePath('/community-voices');
-    revalidatePath('/privacy-policy');
-    revalidatePath('/admin/content');
+    await siteCollection(db, DEFAULT_SITE_ID, 'siteContent').doc(sectionKey).set(data, { merge: true });
+    revalidateSite(DEFAULT_SITE_ID, '/admin/content', ['/', '/founding-50', '/community-voices', '/privacy-policy']);
     return { success: true };
   } catch (error) {
     console.error('Error updating section content:', error);
@@ -50,31 +64,84 @@ export async function updateSectionContent(
   }
 }
 
-export async function saveLeader(leader: Omit<Leader, 'id'> & { id?: string }) {
-  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
+const KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,59}$/;
+
+function isFieldValue(v: unknown): v is ContentFieldValue {
+  return typeof v === 'string' || (Array.isArray(v) && v.every((x) => typeof x === 'string'));
+}
+
+/** Replaces one free-form content section of any other website. */
+export async function saveContentSection(
+  siteId: string,
+  sectionKey: string,
+  fields: Record<string, unknown>,
+) {
+  if (!(await authorize('content'))) return { success: false, error: NO_ACCESS };
+  if (siteId === DEFAULT_SITE_ID) return { success: false, error: 'Use the page editor for this website.' };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
+  if (!KEY_PATTERN.test(sectionKey)) {
+    return { success: false, error: 'Section keys start with a letter and use letters, numbers, - or _.' };
+  }
+  const entries = Object.entries(fields ?? {});
+  if (entries.length > 100) return { success: false, error: 'A section can have at most 100 fields.' };
+  if (!entries.every(([k, v]) => KEY_PATTERN.test(k) && isFieldValue(v))) {
+    return { success: false, error: 'Field keys start with a letter and use letters, numbers, - or _.' };
+  }
+
+  const db = getAdminDb();
+  if (!db) return { success: false, error: 'Database not connected' };
+
+  try {
+    // No merge, so fields removed in the editor are removed here too.
+    await siteCollection(db, siteId, 'siteContent').doc(sectionKey).set(Object.fromEntries(entries));
+    revalidatePath('/admin/content');
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving content section:', error);
+    return { success: false, error: 'Failed to save section' };
+  }
+}
+
+export async function deleteContentSection(siteId: string, sectionKey: string) {
+  if (!(await authorize('content'))) return { success: false, error: NO_ACCESS };
+  if (siteId === DEFAULT_SITE_ID) return { success: false, error: 'Use the page editor for this website.' };
+  if (!(await knownSite(siteId)) || !KEY_PATTERN.test(sectionKey)) return { success: false, error: 'Section not found.' };
+
+  const db = getAdminDb();
+  if (!db) return { success: false, error: 'Database not connected' };
+
+  try {
+    await siteCollection(db, siteId, 'siteContent').doc(sectionKey).delete();
+    revalidatePath('/admin/content');
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting content section:', error);
+    return { success: false, error: 'Failed to delete section' };
+  }
+}
+
+export async function saveLeader(siteId: string, leader: Omit<Leader, 'id'> & { id?: string }) {
+  if (!(await authorize('leaders'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
     const { id, ...data } = leader;
     const now = new Date().toISOString();
+    const leaders = siteCollection(db, siteId, 'leaders');
 
     if (id && !id.startsWith('temp-')) {
-      await db
-        .collection('leaders')
-        .doc(id)
-        .set({ ...data, updatedAt: now }, { merge: true });
+      await leaders.doc(id).set({ ...data, updatedAt: now }, { merge: true });
     } else {
-      await db.collection('leaders').add({
+      await leaders.add({
         ...data,
         createdAt: now,
         updatedAt: now,
       });
     }
 
-    revalidatePath('/');
-    revalidatePath('/founding-50');
-    revalidatePath('/admin/leaders');
+    revalidateSite(siteId, '/admin/leaders', ['/', '/founding-50']);
     return { success: true };
   } catch (error) {
     console.error('Error saving leader:', error);
@@ -82,15 +149,15 @@ export async function saveLeader(leader: Omit<Leader, 'id'> & { id?: string }) {
   }
 }
 
-export async function deleteLeader(leaderId: string) {
-  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
+export async function deleteLeader(siteId: string, leaderId: string) {
+  if (!(await authorize('leaders'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
-    await db.collection('leaders').doc(leaderId).delete();
-    revalidatePath('/founding-50');
-    revalidatePath('/admin/leaders');
+    await siteCollection(db, siteId, 'leaders').doc(leaderId).delete();
+    revalidateSite(siteId, '/admin/leaders', ['/', '/founding-50']);
     return { success: true };
   } catch (error) {
     console.error('Error deleting leader:', error);
@@ -98,21 +165,21 @@ export async function deleteLeader(leaderId: string) {
   }
 }
 
-export async function reorderLeaders(orderedIds: string[]) {
-  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
+export async function reorderLeaders(siteId: string, orderedIds: string[]) {
+  if (!(await authorize('leaders'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
+    const leaders = siteCollection(db, siteId, 'leaders');
     const batch = db.batch();
     orderedIds.forEach((id, index) => {
-      const ref = db.collection('leaders').doc(id);
-      batch.update(ref, { order: index + 1 });
+      batch.update(leaders.doc(id), { order: index + 1 });
     });
     await batch.commit();
 
-    revalidatePath('/founding-50');
-    revalidatePath('/admin/leaders');
+    revalidateSite(siteId, '/admin/leaders', ['/', '/founding-50']);
     return { success: true };
   } catch (error) {
     console.error('Error reordering leaders:', error);
@@ -120,21 +187,22 @@ export async function reorderLeaders(orderedIds: string[]) {
   }
 }
 
-export async function saveVoice(voice: Omit<CommunityVoice, 'id'> & { id?: string }) {
-  if (!(await authorize('voices'))) return { success: false, error: 'You don’t have access to this section.' };
+export async function saveVoice(siteId: string, voice: Omit<CommunityVoice, 'id'> & { id?: string }) {
+  if (!(await authorize('voices'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
     const { id, ...data } = voice;
+    const voices = siteCollection(db, siteId, 'voices');
     if (id && !id.startsWith('temp-')) {
-      await db.collection('voices').doc(id).set(data, { merge: true });
+      await voices.doc(id).set(data, { merge: true });
     } else {
-      await db.collection('voices').add(data);
+      await voices.add(data);
     }
 
-    revalidatePath('/community-voices');
-    revalidatePath('/admin/voices');
+    revalidateSite(siteId, '/admin/voices', ['/community-voices']);
     return { success: true };
   } catch (error) {
     console.error('Error saving community voice:', error);
@@ -142,15 +210,15 @@ export async function saveVoice(voice: Omit<CommunityVoice, 'id'> & { id?: strin
   }
 }
 
-export async function deleteVoice(voiceId: string) {
-  if (!(await authorize('voices'))) return { success: false, error: 'You don’t have access to this section.' };
+export async function deleteVoice(siteId: string, voiceId: string) {
+  if (!(await authorize('voices'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
-    await db.collection('voices').doc(voiceId).delete();
-    revalidatePath('/community-voices');
-    revalidatePath('/admin/voices');
+    await siteCollection(db, siteId, 'voices').doc(voiceId).delete();
+    revalidateSite(siteId, '/admin/voices', ['/community-voices']);
     return { success: true };
   } catch (error) {
     console.error('Error deleting voice:', error);
@@ -158,14 +226,15 @@ export async function deleteVoice(voiceId: string) {
   }
 }
 
-export async function updateSiteSettings(settings: Partial<SiteSettings>) {
-  if (!(await authorize('settings'))) return { success: false, error: 'You don’t have access to this section.' };
+export async function updateSiteSettings(siteId: string, settings: Partial<SiteSettings>) {
+  if (!(await authorize('settings'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
   const db = getAdminDb();
   if (!db) return { success: false, error: 'Database not connected' };
 
   try {
-    await db.collection('settings').doc('general').set(settings, { merge: true });
-    revalidatePath('/', 'layout');
+    await siteCollection(db, siteId, 'settings').doc('general').set(settings, { merge: true });
+    if (siteId === DEFAULT_SITE_ID) revalidatePath('/', 'layout');
     revalidatePath('/admin/settings');
     return { success: true };
   } catch (error) {
@@ -178,9 +247,11 @@ const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 /** Uploads a leader headshot through the server so access rules apply. */
 export async function uploadLeaderPhoto(
+  siteId: string,
   formData: FormData,
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
-  if (!(await authorize('leaders'))) return { success: false, error: 'You don’t have access to this section.' };
+  if (!(await authorize('leaders'))) return { success: false, error: NO_ACCESS };
+  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
 
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) return { success: false, error: 'Choose an image to upload.' };
@@ -192,7 +263,8 @@ export async function uploadLeaderPhoto(
 
   try {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
-    const path = `uploads/leaders/${Date.now()}_${safeName}`;
+    const folder = siteId === DEFAULT_SITE_ID ? 'uploads/leaders' : `uploads/sites/${siteId}/leaders`;
+    const path = `${folder}/${Date.now()}_${safeName}`;
     const token = randomUUID();
     await bucket.file(path).save(Buffer.from(await file.arrayBuffer()), {
       contentType: file.type,

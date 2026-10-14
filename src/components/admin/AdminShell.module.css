@@ -970,3 +970,105 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Website switcher ---------- */
+.siteButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 240px;
+  height: 44px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--a-border);
+  border-radius: 12px;
+  background: var(--a-surface);
+  color: var(--a-text);
+  font: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, box-shadow 0.25s var(--a-ease);
+}
+
+.siteButton:hover,
+.siteButton[aria-expanded='true'] {
+  border-color: rgba(47, 107, 255, 0.35);
+  box-shadow: 0 0 0 4px var(--a-primary-soft);
+}
+
+.siteMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--a-primary-soft);
+  color: var(--a-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.siteText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.siteText small {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+
+.siteText strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.dropdownLeft {
+  left: 0;
+  right: auto;
+  transform-origin: top left;
+}
+
+.siteOption {
+  justify-content: flex-start;
+}
+
+.siteOption > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.siteOption[aria-checked='true'] {
+  color: var(--a-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  /* Just the site badge on phones; the menu still names every site. */
+  .siteButton { padding: 0 5px; gap: 0; }
+  .siteButton .siteText,
+  .siteButton .chevron { display: none; }
+}
+
+/* The website switcher shares the top bar; the leads page has its own search. */
+@media (min-width: 1181px) and (max-width: 1600px) {
+  .search { display: none; }
+}
+
+@media (max-width: 440px) {
+  /* The logo already names the brand; make room for the website badge. */
+  .brandText { display: none; }
+}

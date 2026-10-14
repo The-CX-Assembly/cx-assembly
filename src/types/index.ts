@@ -17,8 +17,22 @@ export interface Leader {
   updatedAt?: string;
 }
 
+/** Where on a website a lead came from. */
+export interface LeadSource {
+  /** Which call-to-action was used, e.g. "hero", "navbar", "footer". */
+  cta?: string;
+  /** Path of the page the form was submitted from. */
+  page?: string;
+  referrer?: string;
+}
+
 export interface Lead {
   id: string;
+  /** The website this lead came from. Older leads have none and belong to the original site. */
+  siteId?: string;
+  source?: LeadSource;
+  /** Extra form fields a website collects beyond the standard ones. */
+  extra?: Record<string, string>;
   type: InterestType;
   fullName: string;
   designation: string;
@@ -125,6 +139,30 @@ export interface SiteContent {
   founding50: SectionFounding50;
   privacyPolicy: string;
 }
+
+/** Optional per-site features: the original site's speaker roster and testimonials. */
+export type SiteModule = 'leaders' | 'voices';
+
+/** A website managed from this dashboard. */
+export interface Site {
+  id: string;
+  name: string;
+  /** Public URL of the website, e.g. https://thecxassembly.com */
+  url?: string;
+  /** Browser origins allowed to post leads directly to the API. */
+  allowedOrigins: string[];
+  modules: SiteModule[];
+  /** The site this app itself renders. Defined in code and can't be removed. */
+  builtIn?: boolean;
+  /** First characters of the API key, so admins can tell keys apart. */
+  apiKeyPrefix?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** A free-form content section for sites other than the original one. */
+export type ContentFieldValue = string | string[];
+export type ContentSections = Record<string, Record<string, ContentFieldValue>>;
 
 export interface AdminUser {
   email: string;

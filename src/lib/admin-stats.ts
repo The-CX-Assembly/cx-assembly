@@ -2,6 +2,8 @@ import 'server-only';
 import { cache } from 'react';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getAdminDb } from './firebase-admin';
+import { siteCollection } from './sites';
+import { DEFAULT_SITE_ID, siteIdOf } from './site-constants';
 import { sampleLeaders, sampleVoices } from './default-content';
 import { InterestType, Lead, LeadStatus, Leader } from '@/types';
 
@@ -65,13 +67,14 @@ export const getAllLeads = cache(async (): Promise<Lead[]> => {
   }
 });
 
-export const getVoiceCounts = cache(async (): Promise<{ total: number; published: number }> => {
+export const getVoiceCounts = cache(async (siteId: string): Promise<{ total: number; published: number }> => {
   const db = getAdminDb();
-  const fallback = { total: sampleVoices.length, published: sampleVoices.length };
+  const sampleCount = siteId === DEFAULT_SITE_ID ? sampleVoices.length : 0;
+  const fallback = { total: sampleCount, published: sampleCount };
   if (!db) return fallback;
 
   try {
-    const snap = await db.collection('voices').get();
+    const snap = await siteCollection(db, siteId, 'voices').get();
     if (snap.empty) return fallback;
     let published = 0;
     snap.forEach((doc) => {
@@ -94,29 +97,38 @@ export interface ShellSummary {
 /**
  * Just what the admin shell needs (badges + recent lists), using count and
  * limit queries instead of loading whole collections on every admin page.
+ * Leads come from every website, since the inbox is shared; leader and voice
+ * counts are for the website being managed (`siteId`).
  */
-export const getShellSummary = cache(async (): Promise<ShellSummary> => {
-  const fallback = { newLeads: [], recentLeads: [], leaderCount: sampleLeaders.length, voiceCount: sampleVoices.length };
+export const getShellSummary = cache(async (siteId: string | null): Promise<ShellSummary> => {
+  // Empty collections fall back to the sample content the original site shows.
+  const usesSamples = siteId === DEFAULT_SITE_ID;
+  const fallback = {
+    newLeads: [],
+    recentLeads: [],
+    leaderCount: usesSamples ? sampleLeaders.length : 0,
+    voiceCount: usesSamples ? sampleVoices.length : 0,
+  };
   const db = getAdminDb();
   if (!db) return fallback;
 
+  const countOf = async (name: 'leaders' | 'voices') =>
+    siteId ? (await siteCollection(db, siteId, name).count().get()).data().count : 0;
+
   try {
-    const [newSnap, recentSnap, leaderAgg, voiceAgg] = await Promise.all([
+    const [newSnap, recentSnap, leaderCount, voiceCount] = await Promise.all([
       // Equality-only filter: needs no composite index, and the 'new' set stays small.
       db.collection('leads').where('status', '==', 'new').get(),
       db.collection('leads').orderBy('createdAt', 'desc').limit(6).get(),
-      db.collection('leaders').count().get(),
-      db.collection('voices').count().get(),
+      countOf('leaders'),
+      countOf('voices'),
     ]);
     const toLead = (doc: QueryDocumentSnapshot) => ({ id: doc.id, ...(doc.data() as Omit<Lead, 'id'>) });
-    const leaderCount = leaderAgg.data().count;
-    const voiceCount = voiceAgg.data().count;
     return {
       newLeads: newSnap.docs.map(toLead).sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
       recentLeads: recentSnap.docs.map(toLead),
-      // Empty collections fall back to the sample content the pages show.
-      leaderCount: leaderCount || sampleLeaders.length,
-      voiceCount: voiceCount || sampleVoices.length,
+      leaderCount: leaderCount || fallback.leaderCount,
+      voiceCount: voiceCount || fallback.voiceCount,
     };
   } catch (e) {
     console.warn('Could not load admin shell summary:', e);
@@ -227,13 +239,17 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
   rejected: 'Archived',
 };
 
-export function buildShellLeads(leads: Lead[], now = Date.now()): ShellLead[] {
-  return leads.slice(0, 6).map((lead) => ({
-    id: lead.id,
-    name: lead.fullName,
-    meta: timeAgo(lead.createdAt, now),
-    status: lead.status,
-  }));
+/** `siteNames` labels each lead with its website; pass it only when there's more than one. */
+export function buildShellLeads(leads: Lead[], siteNames?: Map<string, string>, now = Date.now()): ShellLead[] {
+  return leads.slice(0, 6).map((lead) => {
+    const site = siteNames?.get(siteIdOf(lead));
+    return {
+      id: lead.id,
+      name: lead.fullName,
+      meta: site ? `${site} · ${timeAgo(lead.createdAt, now)}` : timeAgo(lead.createdAt, now),
+      status: lead.status,
+    };
+  });
 }
 
 export function buildDashboard(leads: Lead[], leaders: Leader[], now = new Date()) {
@@ -244,7 +260,8 @@ export function buildDashboard(leads: Lead[], leaders: Leader[], now = new Date(
       id: `lead-${lead.id}`,
       kind: lead.type,
       title: lead.fullName,
-      description: lead.message?.trim() || `${lead.designation || 'Leader'} at ${lead.company}`,
+      description:
+        lead.message?.trim() || (lead.company ? `${lead.designation || 'Leader'} at ${lead.company}` : lead.email),
       href: `/admin/leads?q=${encodeURIComponent(lead.fullName)}`,
       chips: [timeAgo(lead.createdAt, nowMs), TYPE_LABEL[lead.type], STATUS_LABEL[lead.status]],
       at: new Date(lead.createdAt).getTime() || 0,

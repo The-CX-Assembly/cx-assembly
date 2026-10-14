@@ -1,19 +1,34 @@
 import { cache } from 'react';
 import { getAdminDb } from './firebase-admin';
+import { siteCollection } from './sites';
+import { DEFAULT_SITE_ID } from './site-constants';
 import {
   defaultContent,
   defaultSettings,
   sampleLeaders,
   sampleVoices,
 } from './default-content';
-import { Leader, CommunityVoice, SiteContent, SiteSettings } from '@/types';
+import { Leader, CommunityVoice, ContentSections, SiteContent, SiteSettings } from '@/types';
 
+// Sample content only stands in for the original site; other sites start empty.
+const sampleFor = <T,>(siteId: string, sample: T[]): T[] => (siteId === DEFAULT_SITE_ID ? sample : []);
+
+const emptySettings: SiteSettings = {
+  siteTitle: '',
+  metaDescription: '',
+  linkedinUrl: '',
+  contactEmail: '',
+  credibilityText: '',
+  foundingCount: '',
+};
+
+/** The original site's typed page copy, with defaults for anything not yet edited. */
 export async function getSiteContent(): Promise<SiteContent> {
   const db = getAdminDb();
   if (!db) return defaultContent;
 
   try {
-    const snapshot = await db.collection('siteContent').get();
+    const snapshot = await siteCollection(db, DEFAULT_SITE_ID, 'siteContent').get();
     if (snapshot.empty) return defaultContent;
 
     const data: Partial<SiteContent> = {};
@@ -38,38 +53,55 @@ export async function getSiteContent(): Promise<SiteContent> {
   }
 }
 
-export async function getLeaders(): Promise<Leader[]> {
+/** Any site's content as stored: section key → field → value. */
+export async function getContentSections(siteId: string): Promise<ContentSections> {
+  if (siteId === DEFAULT_SITE_ID) return (await getSiteContent()) as unknown as ContentSections;
+
   const db = getAdminDb();
-  if (!db) return sampleLeaders;
+  if (!db) return {};
 
   try {
-    const snapshot = await db
-      .collection('leaders')
+    const snapshot = await siteCollection(db, siteId, 'siteContent').get();
+    const sections: ContentSections = {};
+    snapshot.forEach((doc) => {
+      sections[doc.id] = doc.data() as ContentSections[string];
+    });
+    return sections;
+  } catch (error) {
+    console.warn(`Error reading content for site ${siteId}:`, error);
+    return {};
+  }
+}
+
+export async function getLeaders(siteId: string = DEFAULT_SITE_ID): Promise<Leader[]> {
+  const db = getAdminDb();
+  if (!db) return sampleFor(siteId, sampleLeaders);
+
+  try {
+    const snapshot = await siteCollection(db, siteId, 'leaders')
       .where('published', '==', true)
       .orderBy('order', 'asc')
       .get();
-
-    if (snapshot.empty) return sampleLeaders;
 
     const leaders: Leader[] = [];
     snapshot.forEach((doc) => {
       leaders.push({ id: doc.id, ...(doc.data() as Omit<Leader, 'id'>) });
     });
-    return leaders.length > 0 ? leaders : sampleLeaders;
+    return leaders.length > 0 ? leaders : sampleFor(siteId, sampleLeaders);
   } catch (error) {
     console.warn('Error reading leaders from Firestore, using sampleLeaders:', error);
-    return sampleLeaders;
+    return sampleFor(siteId, sampleLeaders);
   }
 }
 
 // Cached per request so the admin layout and page share one query.
-export const getAllLeadersAdmin = cache(async (): Promise<Leader[]> => {
+export const getAllLeadersAdmin = cache(async (siteId: string = DEFAULT_SITE_ID): Promise<Leader[]> => {
   const db = getAdminDb();
-  if (!db) return sampleLeaders;
+  if (!db) return sampleFor(siteId, sampleLeaders);
 
   try {
-    const snapshot = await db.collection('leaders').orderBy('order', 'asc').get();
-    if (snapshot.empty) return sampleLeaders;
+    const snapshot = await siteCollection(db, siteId, 'leaders').orderBy('order', 'asc').get();
+    if (snapshot.empty) return sampleFor(siteId, sampleLeaders);
 
     const leaders: Leader[] = [];
     snapshot.forEach((doc) => {
@@ -78,44 +110,62 @@ export const getAllLeadersAdmin = cache(async (): Promise<Leader[]> => {
     return leaders;
   } catch (error) {
     console.warn('Error fetching all leaders:', error);
-    return sampleLeaders;
+    return sampleFor(siteId, sampleLeaders);
   }
 });
 
-export async function getVoices(): Promise<CommunityVoice[]> {
+export async function getVoices(siteId: string = DEFAULT_SITE_ID): Promise<CommunityVoice[]> {
   const db = getAdminDb();
-  if (!db) return sampleVoices;
+  if (!db) return sampleFor(siteId, sampleVoices);
 
   try {
-    const snapshot = await db
-      .collection('voices')
+    const snapshot = await siteCollection(db, siteId, 'voices')
       .where('published', '==', true)
       .orderBy('order', 'asc')
       .get();
-
-    if (snapshot.empty) return sampleVoices;
 
     const voices: CommunityVoice[] = [];
     snapshot.forEach((doc) => {
       voices.push({ id: doc.id, ...(doc.data() as Omit<CommunityVoice, 'id'>) });
     });
-    return voices.length > 0 ? voices : sampleVoices;
+    return voices.length > 0 ? voices : sampleFor(siteId, sampleVoices);
   } catch (error) {
     console.warn('Error reading voices from Firestore, using sampleVoices:', error);
-    return sampleVoices;
+    return sampleFor(siteId, sampleVoices);
   }
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+/** Every voice, drafts included, for the admin editor. */
+export async function getAllVoicesAdmin(siteId: string): Promise<CommunityVoice[]> {
   const db = getAdminDb();
-  if (!db) return defaultSettings;
+  if (!db) return sampleFor(siteId, sampleVoices);
 
   try {
-    const doc = await db.collection('settings').doc('general').get();
-    if (!doc.exists) return defaultSettings;
-    return { ...defaultSettings, ...(doc.data() as Partial<SiteSettings>) };
+    const snapshot = await siteCollection(db, siteId, 'voices').orderBy('order', 'asc').get();
+    if (snapshot.empty) return sampleFor(siteId, sampleVoices);
+
+    const voices: CommunityVoice[] = [];
+    snapshot.forEach((doc) => {
+      voices.push({ id: doc.id, ...(doc.data() as Omit<CommunityVoice, 'id'>) });
+    });
+    return voices;
+  } catch (error) {
+    console.warn('Error fetching all voices:', error);
+    return sampleFor(siteId, sampleVoices);
+  }
+}
+
+export async function getSiteSettings(siteId: string = DEFAULT_SITE_ID): Promise<SiteSettings> {
+  const defaults = siteId === DEFAULT_SITE_ID ? defaultSettings : emptySettings;
+  const db = getAdminDb();
+  if (!db) return defaults;
+
+  try {
+    const doc = await siteCollection(db, siteId, 'settings').doc('general').get();
+    if (!doc.exists) return defaults;
+    return { ...defaults, ...(doc.data() as Partial<SiteSettings>) };
   } catch (error) {
     console.warn('Error reading settings from Firestore, using defaultSettings:', error);
-    return defaultSettings;
+    return defaults;
   }
 }

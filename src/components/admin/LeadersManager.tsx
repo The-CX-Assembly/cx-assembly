@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Leader } from '@/types';
 import { saveLeader, deleteLeader, reorderLeaders, uploadLeaderPhoto } from '@/app/actions/admin';
 
-export default function LeadersManager({ initialLeaders }: { initialLeaders: Leader[] }) {
+export default function LeadersManager({ siteId, initialLeaders }: { siteId: string; initialLeaders: Leader[] }) {
   const [leaders, setLeaders] = useState<Leader[]>(initialLeaders);
   const [editingLeader, setEditingLeader] = useState<Partial<Leader> | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -22,7 +22,7 @@ export default function LeadersManager({ initialLeaders }: { initialLeaders: Lea
     newLeaders[targetIndex] = temp;
 
     setLeaders(newLeaders);
-    await reorderLeaders(newLeaders.map((l) => l.id));
+    await reorderLeaders(siteId, newLeaders.map((l) => l.id));
   };
 
   // Upload photo to Firebase Storage
@@ -34,7 +34,7 @@ export default function LeadersManager({ initialLeaders }: { initialLeaders: Lea
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const result = await uploadLeaderPhoto(formData);
+      const result = await uploadLeaderPhoto(siteId, formData);
       if (result.success) {
         setEditingLeader((prev) => (prev ? { ...prev, photoUrl: result.url } : { photoUrl: result.url }));
       } else {
@@ -68,7 +68,7 @@ export default function LeadersManager({ initialLeaders }: { initialLeaders: Lea
       published: editingLeader.published ?? true,
     };
 
-    const res = await saveLeader(leaderData);
+    const res = await saveLeader(siteId, leaderData);
     if (res.success) {
       if (editingLeader.id) {
         setLeaders((prev) =>
@@ -86,7 +86,7 @@ export default function LeadersManager({ initialLeaders }: { initialLeaders: Lea
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to remove this founding leader?')) return;
-    const res = await deleteLeader(id);
+    const res = await deleteLeader(siteId, id);
     if (res.success) {
       setLeaders((prev) => prev.filter((l) => l.id !== id));
     }

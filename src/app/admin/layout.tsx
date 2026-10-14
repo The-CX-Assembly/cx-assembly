@@ -1,4 +1,5 @@
 import { getAdminSession } from '@/lib/auth-session';
+import { getAdminSiteContext } from '@/lib/admin-site';
 import { buildShellLeads, getShellSummary } from '@/lib/admin-stats';
 import { canAccess } from '@/lib/admin-sections';
 import AdminShell from '@/components/admin/AdminShell';
@@ -15,18 +16,23 @@ export default async function AdminLayout({
     return <main style={{ minHeight: '100vh', backgroundColor: '#F5F6FA' }}>{children}</main>;
   }
 
-  const { newLeads, recentLeads, leaderCount, voiceCount } = await getShellSummary();
+  const { sites, site } = await getAdminSiteContext();
+  const { newLeads, recentLeads, leaderCount, voiceCount } = await getShellSummary(site?.id ?? null);
   // Applicant names only go to people allowed to see the inbox.
   const canLeads = canAccess(user, 'leads');
+  // With one website there's no need to say which one a lead came from.
+  const siteNames = sites.length > 1 ? new Map(sites.map((s) => [s.id, s.name])) : undefined;
 
   return (
     <AdminShell
       user={{ email: user.email, name: user.name, role: user.role, sections: user.sections }}
+      sites={sites.map((s) => ({ id: s.id, name: s.name, url: s.url, modules: s.modules }))}
+      siteId={site?.id ?? null}
       newLeadsCount={canLeads ? newLeads.length : 0}
       leaderCount={leaderCount}
       voiceCount={voiceCount}
-      recentLeads={canLeads ? buildShellLeads(recentLeads) : []}
-      newLeads={canLeads ? buildShellLeads(newLeads).slice(0, 5) : []}
+      recentLeads={canLeads ? buildShellLeads(recentLeads, siteNames) : []}
+      newLeads={canLeads ? buildShellLeads(newLeads, siteNames).slice(0, 5) : []}
     >
       {children}
     </AdminShell>

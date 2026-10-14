@@ -45,7 +45,7 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <JoinButton className="cta cta--solid header-cta">
+        <JoinButton source="navbar" className="cta cta--solid header-cta">
           Join The Assembly
           <ArrowRight size={16} />
         </JoinButton>
@@ -71,7 +71,7 @@ export default function Navbar() {
             </Link>
           ))}
           <div style={{ marginTop: 32 }}>
-            <JoinButton onClick={() => setOpen(false)}>
+            <JoinButton source="mobile-menu" onClick={() => setOpen(false)}>
               Join The Assembly
               <ArrowRight size={16} />
             </JoinButton>

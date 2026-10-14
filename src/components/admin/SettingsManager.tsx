@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { SiteSettings } from '@/types';
 import { updateSiteSettings } from '@/app/actions/admin';
 
-export default function SettingsManager({ initialSettings }: { initialSettings: SiteSettings }) {
+export default function SettingsManager({ siteId, initialSettings }: { siteId: string; initialSettings: SiteSettings }) {
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -12,7 +12,7 @@ export default function SettingsManager({ initialSettings }: { initialSettings: 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    const res = await updateSiteSettings(settings);
+    const res = await updateSiteSettings(siteId, settings);
     if (res.success) {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
