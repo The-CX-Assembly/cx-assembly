@@ -4,8 +4,8 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getAdminDb } from './firebase-admin';
 import { siteCollection } from './sites';
 import { DEFAULT_SITE_ID, siteIdOf } from './site-constants';
-import { sampleLeaders, sampleVoices } from './default-content';
-import { InterestType, Lead, LeadStatus, Leader } from '@/types';
+import { sampleLeaders } from './default-content';
+import { InterestType, Lead, LeadSource, LeadStatus } from '@/types';
 
 // The community is India-based, so day/month buckets follow IST rather than
 // the server's (UTC) clock.
@@ -30,16 +30,6 @@ export interface PipelineSlice {
 export interface MixSlice {
   type: InterestType;
   count: number;
-}
-
-export interface ActivityItem {
-  id: string;
-  kind: 'cx_leader' | 'partner' | 'other' | 'leader';
-  title: string;
-  description: string;
-  href: string;
-  chips: string[];
-  at: number;
 }
 
 export interface ShellLead {
@@ -67,68 +57,40 @@ export const getAllLeads = cache(async (): Promise<Lead[]> => {
   }
 });
 
-export const getVoiceCounts = cache(async (siteId: string): Promise<{ total: number; published: number }> => {
-  const db = getAdminDb();
-  const sampleCount = siteId === DEFAULT_SITE_ID ? sampleVoices.length : 0;
-  const fallback = { total: sampleCount, published: sampleCount };
-  if (!db) return fallback;
-
-  try {
-    const snap = await siteCollection(db, siteId, 'voices').get();
-    if (snap.empty) return fallback;
-    let published = 0;
-    snap.forEach((doc) => {
-      if (doc.data().published) published += 1;
-    });
-    return { total: snap.size, published };
-  } catch (e) {
-    console.warn('Could not count voices:', e);
-    return fallback;
-  }
-});
-
 export interface ShellSummary {
   newLeads: Lead[];
-  recentLeads: Lead[];
   leaderCount: number;
-  voiceCount: number;
 }
 
 /**
- * Just what the admin shell needs (badges + recent lists), using count and
- * limit queries instead of loading whole collections on every admin page.
- * Leads come from every website, since the inbox is shared; leader and voice
- * counts are for the website being managed (`siteId`).
+ * Just what the admin shell needs (badges + new-lead notifications), using
+ * count and equality queries instead of loading whole collections on every admin page.
+ * Leads come from every website, since the inbox is shared; the leader count
+ * is for the website being managed (`siteId`).
  */
 export const getShellSummary = cache(async (siteId: string | null): Promise<ShellSummary> => {
   // Empty collections fall back to the sample content the original site shows.
   const usesSamples = siteId === DEFAULT_SITE_ID;
   const fallback = {
     newLeads: [],
-    recentLeads: [],
     leaderCount: usesSamples ? sampleLeaders.length : 0,
-    voiceCount: usesSamples ? sampleVoices.length : 0,
   };
   const db = getAdminDb();
   if (!db) return fallback;
 
-  const countOf = async (name: 'leaders' | 'voices') =>
-    siteId ? (await siteCollection(db, siteId, name).count().get()).data().count : 0;
+  const countLeaders = async () =>
+    siteId ? (await siteCollection(db, siteId, 'leaders').count().get()).data().count : 0;
 
   try {
-    const [newSnap, recentSnap, leaderCount, voiceCount] = await Promise.all([
+    const [newSnap, leaderCount] = await Promise.all([
       // Equality-only filter: needs no composite index, and the 'new' set stays small.
       db.collection('leads').where('status', '==', 'new').get(),
-      db.collection('leads').orderBy('createdAt', 'desc').limit(6).get(),
-      countOf('leaders'),
-      countOf('voices'),
+      countLeaders(),
     ]);
     const toLead = (doc: QueryDocumentSnapshot) => ({ id: doc.id, ...(doc.data() as Omit<Lead, 'id'>) });
     return {
       newLeads: newSnap.docs.map(toLead).sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
-      recentLeads: recentSnap.docs.map(toLead),
       leaderCount: leaderCount || fallback.leaderCount,
-      voiceCount: voiceCount || fallback.voiceCount,
     };
   } catch (e) {
     console.warn('Could not load admin shell summary:', e);
@@ -226,18 +188,104 @@ function within(leads: Lead[], ms: number, now: Date) {
   return leads.filter((l) => l.createdAt && new Date(l.createdAt).getTime() >= since);
 }
 
-const TYPE_LABEL: Record<InterestType, string> = {
-  cx_leader: 'CX Leader',
-  partner: 'Partner',
-  other: 'General',
+// ---------- Lead sources (campaign attribution) ----------
+
+export type SourceDimension = 'campaign' | 'channel' | 'button' | 'landing';
+
+export interface SourceRow {
+  label: string;
+  leads: number;
+  approved: number;
+}
+
+export interface SourceBreakdown {
+  total: number;
+  /** Leads that arrived on a link with campaign tags (utm_*). */
+  tagged: number;
+  rows: Record<SourceDimension, SourceRow[]>;
+}
+
+const NOT_TRACKED = 'Not tracked';
+const MAX_ROWS = 6;
+
+// Matched against utm_source first, then the referring site's host.
+const CHANNELS: [RegExp, string][] = [
+  [/linkedin|lnkd\.in/, 'LinkedIn'],
+  [/google/, 'Google'],
+  [/facebook|^fb$|fb\.|instagram|meta/, 'Meta (Facebook / Instagram)'],
+  [/twitter|^t\.co$|(^|\.)x\.com$|^x$/, 'X (Twitter)'],
+  [/whatsapp|wa\.me/, 'WhatsApp'],
+  [/youtube|youtu\.be/, 'YouTube'],
+  [/bing/, 'Bing'],
+  [/mail|newsletter/, 'Email'],
+];
+
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).host.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
 };
 
-const STATUS_LABEL: Record<LeadStatus, string> = {
-  new: 'New',
-  reviewed: 'Reviewing',
-  approved: 'Approved',
-  rejected: 'Archived',
+const titleCase = (v: string) => v.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+/** Leads from before tracking existed carry no source at all. */
+const isTracked = (s?: LeadSource): s is LeadSource => Boolean(s && (s.cta || s.page || s.landingPage || s.utmSource));
+
+function channelOf(s?: LeadSource): string {
+  if (!isTracked(s)) return NOT_TRACKED;
+  const tag = s.utmSource?.trim().toLowerCase() ?? '';
+  const host = s.referrer ? hostOf(s.referrer) : '';
+  for (const probe of [tag, host]) {
+    if (!probe) continue;
+    const match = CHANNELS.find(([re]) => re.test(probe));
+    if (match) return match[1];
+  }
+  if (s.utmMedium?.toLowerCase().includes('email')) return 'Email';
+  if (tag) return titleCase(tag);
+  if (host) return host;
+  return 'Direct / unknown';
+}
+
+const LABEL: Record<SourceDimension, (s?: LeadSource) => string> = {
+  campaign: (s) => (!isTracked(s) ? NOT_TRACKED : s.utmCampaign?.trim() || 'No campaign tag'),
+  channel: channelOf,
+  button: (s) => (s?.cta ? titleCase(s.cta) : NOT_TRACKED),
+  landing: (s) => s?.landingPage || s?.page || NOT_TRACKED,
 };
+
+function rank(leads: Lead[], labelOf: (s?: LeadSource) => string): SourceRow[] {
+  const rows = new Map<string, SourceRow>();
+  for (const lead of leads) {
+    const label = labelOf(lead.source);
+    const row = rows.get(label) ?? { label, leads: 0, approved: 0 };
+    row.leads += 1;
+    if (lead.status === 'approved') row.approved += 1;
+    rows.set(label, row);
+  }
+  const sorted = [...rows.values()].sort((a, b) => b.leads - a.leads || a.label.localeCompare(b.label));
+  if (sorted.length <= MAX_ROWS) return sorted;
+  // Fold the long tail into one row so the list stays scannable.
+  const rest = sorted.slice(MAX_ROWS - 1).reduce(
+    (acc, r) => ({ ...acc, leads: acc.leads + r.leads, approved: acc.approved + r.approved }),
+    { label: `${sorted.length - MAX_ROWS + 1} others`, leads: 0, approved: 0 },
+  );
+  return [...sorted.slice(0, MAX_ROWS - 1), rest];
+}
+
+function sourcesFor(leads: Lead[]): SourceBreakdown {
+  return {
+    total: leads.length,
+    tagged: leads.filter((l) => l.source?.utmSource || l.source?.utmCampaign).length,
+    rows: {
+      campaign: rank(leads, LABEL.campaign),
+      channel: rank(leads, LABEL.channel),
+      button: rank(leads, LABEL.button),
+      landing: rank(leads, LABEL.landing),
+    },
+  };
+}
 
 /** `siteNames` labels each lead with its website; pass it only when there's more than one. */
 export function buildShellLeads(leads: Lead[], siteNames?: Map<string, string>, now = Date.now()): ShellLead[] {
@@ -252,40 +300,13 @@ export function buildShellLeads(leads: Lead[], siteNames?: Map<string, string>, 
   });
 }
 
-export function buildDashboard(leads: Lead[], leaders: Leader[], now = new Date()) {
-  const nowMs = now.getTime();
-
-  const activity: ActivityItem[] = [
-    ...leads.slice(0, 8).map<ActivityItem>((lead) => ({
-      id: `lead-${lead.id}`,
-      kind: lead.type,
-      title: lead.fullName,
-      description:
-        lead.message?.trim() || (lead.company ? `${lead.designation || 'Leader'} at ${lead.company}` : lead.email),
-      href: `/admin/leads?q=${encodeURIComponent(lead.fullName)}`,
-      chips: [timeAgo(lead.createdAt, nowMs), TYPE_LABEL[lead.type], STATUS_LABEL[lead.status]],
-      at: new Date(lead.createdAt).getTime() || 0,
-    })),
-    ...leaders
-      .filter((l) => l.updatedAt || l.createdAt)
-      .map<ActivityItem>((leader) => {
-        const stamp = (leader.updatedAt || leader.createdAt) as string;
-        return {
-          id: `leader-${leader.id}`,
-          kind: 'leader',
-          title: leader.name,
-          description: `${leader.designation} at ${leader.company}`,
-          href: '/admin/leaders',
-          chips: [timeAgo(stamp, nowMs), 'Founding 50', leader.published ? 'Live' : 'Draft'],
-          at: new Date(stamp).getTime() || 0,
-        };
-      }),
-  ]
-    .sort((a, b) => b.at - a.at)
-    .slice(0, 10);
-
+export function buildDashboard(leads: Lead[], now = new Date()) {
   return {
-    activity,
+    sources: {
+      all: sourcesFor(leads),
+      month: sourcesFor(within(leads, 30 * DAY_MS, now)),
+      week: sourcesFor(within(leads, 7 * DAY_MS, now)),
+    } satisfies Record<MixRange, SourceBreakdown>,
     trend: {
       week: dailySeries(leads, 7, now, 'weekday'),
       month: dailySeries(leads, 30, now, 'day'),

@@ -14,8 +14,8 @@ export default async function AdminLeadersPage() {
         title="Choose a website"
         message={
           site
-            ? `${site.name} doesn’t use leader profiles. A super admin can turn them on under Websites, or pick another website:`
-            : 'Leader profiles belong to one website. Pick which one to manage:'
+            ? `${site.name} doesn’t use CMO Speaker profiles. A super admin can turn them on under Websites, or pick another website:`
+            : 'CMO Speakers belong to one website. Pick which one to manage:'
         }
         sites={sitesWith(sites, 'leaders')}
       />
@@ -28,10 +28,10 @@ export default async function AdminLeadersPage() {
     <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
-          {site.builtIn ? 'Founding CX Leaders' : `${site.name} Leaders`} ({leaders.length})
+          CMO Speakers ({leaders.length})
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem' }}>
-          Upload headshots, manage executive biographies, reorder leaders, and toggle publishing.
+          Upload headshots, manage speaker biographies, reorder speakers, and toggle publishing.
         </p>
       </div>
 

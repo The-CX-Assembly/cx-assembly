@@ -17,7 +17,7 @@ export default async function AdminLayout({
   }
 
   const { sites, site } = await getAdminSiteContext();
-  const { newLeads, recentLeads, leaderCount, voiceCount } = await getShellSummary(site?.id ?? null);
+  const { newLeads, leaderCount } = await getShellSummary(site?.id ?? null);
   // Applicant names only go to people allowed to see the inbox.
   const canLeads = canAccess(user, 'leads');
   // With one website there's no need to say which one a lead came from.
@@ -30,8 +30,6 @@ export default async function AdminLayout({
       siteId={site?.id ?? null}
       newLeadsCount={canLeads ? newLeads.length : 0}
       leaderCount={leaderCount}
-      voiceCount={voiceCount}
-      recentLeads={canLeads ? buildShellLeads(recentLeads, siteNames) : []}
       newLeads={canLeads ? buildShellLeads(newLeads, siteNames).slice(0, 5) : []}
     >
       {children}

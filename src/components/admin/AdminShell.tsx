@@ -22,13 +22,11 @@ import {
   IconInbox,
   IconLogout,
   IconMenu,
-  IconQuote,
   IconSearch,
   IconSettings,
   IconShield,
   IconSidebar,
   IconStar,
-  IconUsers,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
 
@@ -50,8 +48,6 @@ interface AdminShellProps {
   siteId: string | null;
   newLeadsCount: number;
   leaderCount: number;
-  voiceCount: number;
-  recentLeads: ShellLead[];
   newLeads: ShellLead[];
   children: React.ReactNode;
 }
@@ -59,8 +55,7 @@ interface AdminShellProps {
 const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' | 'sites' }[] = [
   { label: 'Dashboard', href: '/admin', section: 'dashboard' },
   { label: 'Leads', href: '/admin/leads', section: 'leads' },
-  { label: 'Leaders', href: '/admin/leaders', section: 'leaders' },
-  { label: 'Voices', href: '/admin/voices', section: 'voices' },
+  { label: 'CMO Speakers', href: '/admin/leaders', section: 'leaders' },
   { label: 'Content', href: '/admin/content', section: 'content' },
   { label: 'Websites', href: '/admin/sites', section: 'sites' },
   { label: 'Users', href: '/admin/users', section: 'users' },
@@ -76,8 +71,6 @@ export default function AdminShell({
   siteId,
   newLeadsCount,
   leaderCount,
-  voiceCount,
-  recentLeads,
   newLeads,
   children,
 }: AdminShellProps) {
@@ -86,7 +79,6 @@ export default function AdminShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Desktop sidebar starts as an icon-only rail.
   const [collapsed, setCollapsed] = useState(true);
-  const [recentOpen, setRecentOpen] = useState(true);
   const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | null>(null);
   const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
@@ -139,9 +131,9 @@ export default function AdminShell({
 
   const isSuperadmin = user.role === 'superadmin';
   const site = sites.find((s) => s.id === siteId) ?? null;
-  // Leaders and testimonials only exist on websites that use them.
+  // CMO Speaker profiles only exist on websites that use them.
   const hasModule = (section: AdminSection | 'users' | 'sites') =>
-    (section !== 'leaders' && section !== 'voices') || Boolean(site?.modules.includes(section));
+    section !== 'leaders' || Boolean(site?.modules.includes(section));
   const allowed = (section: AdminSection | 'users' | 'sites') =>
     (section === 'users' || section === 'sites' ? isSuperadmin : canAccess(user, section)) && hasModule(section);
   const canLeads = allowed('leads');
@@ -150,8 +142,7 @@ export default function AdminShell({
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
     { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
-    { label: 'Founding Leaders', href: '/admin/leaders', icon: IconStar, section: 'leaders' as const, badge: leaderCount },
-    { label: 'Community Voices', href: '/admin/voices', icon: IconQuote, section: 'voices' as const, badge: voiceCount },
+    { label: 'CMO Speakers', href: '/admin/leaders', icon: IconStar, section: 'leaders' as const, badge: leaderCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
     { label: 'Websites', href: '/admin/sites', icon: IconGlobe, section: 'sites' as const },
@@ -359,20 +350,21 @@ export default function AdminShell({
                 className={styles.userButton}
                 onClick={() => setMenu(menu === 'user' ? null : 'user')}
                 aria-expanded={menu === 'user'}
-                aria-label="Account menu"
+                aria-label={`Account menu for ${user.name}`}
+                title={user.name}
               >
                 <span className={styles.avatar} style={{ background: avatarGradient(user.email) }}>
                   {initials(user.name)}
                 </span>
-                <span className={styles.userName} title={user.email}>
-                  {user.name}
-                </span>
-                <IconChevronDown size={16} className={`${styles.chevron} ${menu === 'user' ? styles.chevronOpen : ''}`} />
               </button>
               {menu === 'user' && (
                 <div className={styles.dropdown} role="menu">
                   <div className={styles.dropdownHead}>
-                    <span className={styles.userEmail}>{user.email}</span>
+                    <span className={styles.userEmail}>
+                      <strong>{user.name}</strong>
+                      <br />
+                      {user.email}
+                    </span>
                     <span className={styles.roleTag}>{ROLE_LABEL[user.role]}</span>
                   </div>
                   {site?.url && (
@@ -435,58 +427,6 @@ export default function AdminShell({
             })}
           </nav>
 
-          {canLeads && (
-            <div className={styles.sideSection}>
-              <button
-                type="button"
-                className={styles.sideSectionHead}
-                onClick={() => {
-                  if (collapsed) {
-                    setCollapsed(false);
-                    setRecentOpen(true);
-                  } else {
-                    setRecentOpen((v) => !v);
-                  }
-                }}
-                aria-expanded={recentOpen && !collapsed}
-                aria-label="Recent applicants"
-                data-label="Recent applicants"
-              >
-                <span className={styles.sideIcon}>
-                  <IconUsers size={18} />
-                </span>
-                <span className={styles.sideLabel}>Recent applicants</span>
-                <IconChevronDown size={16} className={`${styles.chevron} ${recentOpen ? styles.chevronOpen : ''}`} />
-              </button>
-              <div className={`${styles.collapse} ${recentOpen ? styles.collapseOpen : ''}`}>
-                <div className={styles.collapseInner}>
-                  {recentLeads.length === 0 ? (
-                    <p className={styles.sideEmpty}>No applications yet.</p>
-                  ) : (
-                    recentLeads.map((lead) => (
-                      <Link
-                        key={lead.id}
-                        href={`/admin/leads?q=${encodeURIComponent(lead.name)}`}
-                        className={styles.person}
-                        aria-label={`${lead.name}, ${lead.meta}`}
-                        data-label={lead.name}
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <span className={styles.avatarSm} style={{ background: avatarGradient(lead.name) }}>
-                          {initials(lead.name)}
-                        </span>
-                        <span className={styles.personText}>
-                          <strong>{lead.name}</strong>
-                          <small>{lead.meta}</small>
-                        </span>
-                        <span className={`${styles.statusDot} ${styles[`status_${lead.status}`]}`} title={lead.status} />
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </aside>
 
         {sidebarOpen && (

@@ -23,7 +23,16 @@ export interface LeadSource {
   cta?: string;
   /** Path of the page the form was submitted from. */
   page?: string;
+  /** Where the visitor came from before reaching the website (external sites only). */
   referrer?: string;
+  /** First page of the visit, e.g. a campaign landing page. */
+  landingPage?: string;
+  /** Campaign tags from the link the visitor arrived on (?utm_source=…). */
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
 }
 
 export interface Lead {
@@ -140,8 +149,8 @@ export interface SiteContent {
   privacyPolicy: string;
 }
 
-/** Optional per-site features: the original site's speaker roster and testimonials. */
-export type SiteModule = 'leaders' | 'voices';
+/** Optional per-site features: the original site's speaker roster. */
+export type SiteModule = 'leaders';
 
 /** A website managed from this dashboard. */
 export interface Site {

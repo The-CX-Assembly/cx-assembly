@@ -3,8 +3,7 @@
 export const ADMIN_SECTIONS = [
   { key: 'dashboard', label: 'Dashboard', href: '/admin', description: 'Overview charts and recent activity' },
   { key: 'leads', label: 'Leads Inbox', href: '/admin/leads', description: 'Applications, statuses and CSV export' },
-  { key: 'leaders', label: 'Founding Leaders', href: '/admin/leaders', description: 'Leader profiles and headshots' },
-  { key: 'voices', label: 'Community Voices', href: '/admin/voices', description: 'Testimonials and quotes' },
+  { key: 'leaders', label: 'CMO Speakers', href: '/admin/leaders', description: 'Speaker profiles and headshots' },
   { key: 'content', label: 'Content Editor', href: '/admin/content', description: 'Website copy for every section' },
   { key: 'settings', label: 'Settings', href: '/admin/settings', description: 'Site metadata and social links' },
 ] as const;

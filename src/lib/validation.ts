@@ -25,6 +25,12 @@ export const leadSourceSchema = z.object({
   cta: optionalText(80),
   page: optionalText(300),
   referrer: optionalText(500),
+  landingPage: optionalText(300),
+  utmSource: optionalText(100),
+  utmMedium: optionalText(100),
+  utmCampaign: optionalText(150),
+  utmTerm: optionalText(150),
+  utmContent: optionalText(150),
 });
 
 /**

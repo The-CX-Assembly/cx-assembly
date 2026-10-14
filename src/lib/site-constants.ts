@@ -12,8 +12,7 @@ export const ALL_SITES = 'all';
 export const siteIdOf = (lead: { siteId?: string }) => lead.siteId || DEFAULT_SITE_ID;
 
 export const SITE_MODULES: { key: SiteModule; label: string; description: string }[] = [
-  { key: 'leaders', label: 'Leaders', description: 'Speaker / member profiles with headshots' },
-  { key: 'voices', label: 'Testimonials', description: 'Quotes from members and partners' },
+  { key: 'leaders', label: 'CMO Speakers', description: 'Speaker profiles with headshots' },
 ];
 
 /** Site ids become Firestore document ids and appear in URLs, so keep them simple. */

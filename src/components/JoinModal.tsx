@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import JoinForm from '@/components/JoinForm';
+import { captureAttribution } from '@/lib/attribution';
 
 const JoinModalContext = createContext<{ openJoin: (source: string) => void }>({ openJoin: () => {} });
 
@@ -27,6 +28,11 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
     }
     if (!open && dialog.open) dialog.close();
   }, [open]);
+
+  // Remember the campaign link this visit started from (the provider wraps every page).
+  useEffect(() => {
+    captureAttribution();
+  }, []);
 
   useEffect(() => {
     const fromHash = () => {

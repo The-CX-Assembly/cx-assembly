@@ -941,3 +941,131 @@
     min-height: 180px;
   }
 }
+
+/* ---------- Lead sources ---------- */
+.sourceControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sourceList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sourceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  animation: sourceIn 0.5s var(--a-ease) both;
+  animation-delay: calc(var(--i) * 50ms);
+}
+
+.sourceTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sourceLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--a-text);
+}
+
+.sourceNums {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sourceNums strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--a-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sourceNums small {
+  font-size: 0.75rem;
+  color: var(--a-muted);
+}
+
+.sourceTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--a-surface-2);
+  overflow: hidden;
+}
+
+.sourceFill {
+  display: block;
+  height: 100%;
+  width: var(--w);
+  border-radius: inherit;
+  background: var(--c);
+  transform-origin: left;
+  animation: sourceGrow 0.8s var(--a-ease) both;
+  animation-delay: calc(var(--i) * 60ms);
+}
+
+.sourceMeta {
+  font-size: 0.75rem;
+  color: var(--a-muted);
+}
+
+.sourcesEmpty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--a-muted);
+}
+
+.sourcesHint {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: var(--a-radius-sm);
+  background: var(--a-primary-soft);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--a-text-2);
+}
+
+.sourcesHint code {
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.sourcesHint a {
+  color: var(--a-primary);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@keyframes sourceIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sourceGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sourceRow,
+  .sourceFill { animation: none; }
+}
