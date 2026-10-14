@@ -55,7 +55,7 @@ export default async function HomePage() {
                 <Link href="/founding-50" className="link-arrow">
                   {hero.ctaSecondaryText}
                 </Link>
-                <JoinButton>
+                <JoinButton source="hero">
                   {hero.ctaPrimaryText}
                   <ArrowRight size={16} />
                 </JoinButton>
@@ -181,7 +181,7 @@ export default async function HomePage() {
                     );
                   })}
                   <li className="reveal" style={{ display: 'flex' }}>
-                    <JoinButton className="tile tile--cta">
+                    <JoinButton source="for-leaders-tile" className="tile tile--cta">
                       <span className="tile__head">
                         <span className="tile__title">{forLeaders.ctaText}</span>
                         <span className="tile__arrow">

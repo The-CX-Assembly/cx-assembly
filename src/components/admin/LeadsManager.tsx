@@ -3,33 +3,45 @@
 import { useState } from 'react';
 import { Lead, LeadStatus } from '@/types';
 import { updateLeadStatus } from '@/app/actions/admin';
+import { ALL_SITES, siteIdOf } from '@/lib/site-constants';
+
+/** "for-leaders-tile" → "For leaders tile" */
+const ctaLabel = (cta?: string) => (cta ? cta.charAt(0).toUpperCase() + cta.slice(1).replace(/[-_]/g, ' ') : '');
 
 export default function LeadsManager({
   initialLeads,
   initialSearch = '',
+  initialSite = ALL_SITES,
+  sites,
 }: {
   initialLeads: Lead[];
   initialSearch?: string;
+  initialSite?: string;
+  sites: { id: string; name: string }[];
 }) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [siteFilter, setSiteFilter] = useState<string>(initialSite);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const multiSite = sites.length > 1;
+  const siteName = (lead: Lead) => sites.find((s) => s.id === siteIdOf(lead))?.name ?? siteIdOf(lead);
+
   // Filtered Leads
   const filteredLeads = leads.filter((lead) => {
-    const matchesSearch =
-      lead.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.designation.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = [lead.fullName, lead.company, lead.email, lead.designation].some((v) =>
+      (v ?? '').toLowerCase().includes(term),
+    );
 
+    const matchesSite = siteFilter === ALL_SITES || siteIdOf(lead) === siteFilter;
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesType = typeFilter === 'all' || lead.type === typeFilter;
 
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesSite && matchesStatus && matchesType;
   });
 
   // Handle status update
@@ -48,14 +60,16 @@ export default function LeadsManager({
   };
 
   // CSV Export functionality
+  // Exports what's on screen, matching the count on the button.
   const exportToCSV = () => {
-    if (leads.length === 0) {
+    if (filteredLeads.length === 0) {
       alert('No leads to export.');
       return;
     }
 
     const headers = [
       'ID',
+      'Website',
       'Full Name',
       'Designation',
       'Company',
@@ -65,37 +79,44 @@ export default function LeadsManager({
       'LinkedIn',
       'Message',
       'Status',
+      'Source Button',
+      'Source Page',
+      'Extra Fields',
       'Submitted At',
     ];
 
-    const rows = leads.map((lead) => [
-      `"${lead.id}"`,
-      `"${lead.fullName.replace(/"/g, '""')}"`,
-      `"${lead.designation.replace(/"/g, '""')}"`,
-      `"${lead.company.replace(/"/g, '""')}"`,
-      `"${lead.email.replace(/"/g, '""')}"`,
-      `"${(lead.phone || '').replace(/"/g, '""')}"`,
-      `"${lead.type}"`,
-      `"${(lead.linkedinUrl || '').replace(/"/g, '""')}"`,
-      `"${(lead.message || '').replace(/"/g, '""')}"`,
-      `"${lead.status}"`,
-      `"${lead.createdAt}"`,
+    const cell = (v: string | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
+    const rows = filteredLeads.map((lead) => [
+      cell(lead.id),
+      cell(siteName(lead)),
+      cell(lead.fullName),
+      cell(lead.designation),
+      cell(lead.company),
+      cell(lead.email),
+      cell(lead.phone),
+      cell(lead.type),
+      cell(lead.linkedinUrl),
+      cell(lead.message),
+      cell(lead.status),
+      cell(lead.source?.cta),
+      cell(lead.source?.page),
+      cell(lead.extra ? JSON.stringify(lead.extra) : ''),
+      cell(lead.createdAt),
     ]);
 
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
+    // A Blob keeps characters like # intact (a data: URI would truncate at them).
+    const csv = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute(
       'download',
-      `cx-assembly-leads-${new Date().toISOString().slice(0, 10)}.csv`
+      `${siteFilter === ALL_SITES ? 'all-websites' : siteFilter}-leads-${new Date().toISOString().slice(0, 10)}.csv`
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -133,6 +154,30 @@ export default function LeadsManager({
               }}
             />
           </div>
+
+          {/* Website Filter */}
+          {multiSite && (
+            <select
+              value={siteFilter}
+              onChange={(e) => setSiteFilter(e.target.value)}
+              aria-label="Website"
+              style={{
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.875rem',
+                outline: 'none',
+                background: '#FFFFFF',
+              }}
+            >
+              <option value={ALL_SITES}>All Websites</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Status Filter */}
           <select
@@ -201,7 +246,8 @@ export default function LeadsManager({
                   <th style={{ padding: '14px 18px' }}>Applicant</th>
                   <th style={{ padding: '14px 18px' }}>Designation & Company</th>
                   <th style={{ padding: '14px 18px' }}>Contact</th>
-                  <th style={{ padding: '14px 18px' }}>Category</th>
+                  <th style={{ padding: '14px 18px' }}>{multiSite ? 'Website & Category' : 'Category'}</th>
+                  <th style={{ padding: '14px 18px' }}>Source</th>
                   <th style={{ padding: '14px 18px' }}>Status</th>
                   <th style={{ padding: '14px 18px' }}>Submitted</th>
                   <th style={{ padding: '14px 18px', textAlign: 'right' }}>Actions</th>
@@ -228,9 +274,20 @@ export default function LeadsManager({
                       {lead.phone && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>{lead.phone}</span>}
                     </td>
                     <td style={{ padding: '16px 18px' }}>
+                      {multiSite && <div style={{ fontWeight: 600, marginBottom: 4 }}>{siteName(lead)}</div>}
                       <span className="badge-pill badge-navy" style={{ fontSize: '0.6875rem' }}>
                         {lead.type === 'cx_leader' ? 'CX Leader' : lead.type === 'partner' ? 'Partner' : 'General'}
                       </span>
+                    </td>
+                    <td style={{ padding: '16px 18px', fontSize: '0.8125rem' }}>
+                      {lead.source?.cta || lead.source?.page ? (
+                        <>
+                          <div style={{ fontWeight: 600 }}>{ctaLabel(lead.source.cta) || '—'}</div>
+                          {lead.source.page && <div style={{ color: 'var(--color-text-muted)' }}>{lead.source.page}</div>}
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-muted)' }}>Not tracked</span>
+                      )}
                     </td>
                     <td style={{ padding: '16px 18px' }} onClick={(e) => e.stopPropagation()}>
                       <select
@@ -382,6 +439,27 @@ export default function LeadsManager({
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Status</span>
                 <span style={{ fontWeight: 700, textTransform: 'uppercase' }}>{selectedLead.status}</span>
               </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Website</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{siteName(selectedLead)}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Came from</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                  {selectedLead.source?.cta || selectedLead.source?.page
+                    ? [ctaLabel(selectedLead.source.cta), selectedLead.source.page && `on ${selectedLead.source.page}`]
+                        .filter(Boolean)
+                        .join(' ')
+                    : 'Not tracked'}
+                </span>
+              </div>
+              {selectedLead.extra &&
+                Object.entries(selectedLead.extra).map(([key, value]) => (
+                  <div key={key}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>{key}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--color-primary)', wordBreak: 'break-word' }}>{value}</span>
+                  </div>
+                ))}
             </div>
 
             {selectedLead.message && (

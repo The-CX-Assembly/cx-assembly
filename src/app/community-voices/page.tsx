@@ -60,7 +60,7 @@ export default async function CommunityVoicesPage() {
             <h2 className="h-xl" style={{ maxWidth: '16ch' }}>
               Add your voice <span className="soft">to the conversation.</span>
             </h2>
-            <JoinButton>
+            <JoinButton source="community-voices">
               Join The Assembly
               <ArrowRight size={16} />
             </JoinButton>

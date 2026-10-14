@@ -94,9 +94,10 @@ export async function requireSuperadmin(): Promise<AdminUser> {
 }
 
 /** For server actions: the user if they may act on this section, otherwise null. */
-export async function authorize(section: AdminSection | 'users'): Promise<AdminUser | null> {
+export async function authorize(section: AdminSection | 'users' | 'sites'): Promise<AdminUser | null> {
   const user = await getAdminSession();
   if (!user) return null;
-  if (section === 'users') return user.role === 'superadmin' ? user : null;
+  // Managing people and websites is reserved for super admins.
+  if (section === 'users' || section === 'sites') return user.role === 'superadmin' ? user : null;
   return canAccess(user, section) ? user : null;
 }

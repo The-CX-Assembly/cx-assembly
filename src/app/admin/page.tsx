@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { requireSection } from '@/lib/auth-session';
+import { getAdminSiteContext } from '@/lib/admin-site';
 import { getAllLeadersAdmin } from '@/lib/content';
 import { buildDashboard, getAllLeads, getVoiceCounts, greeting, todayLabel } from '@/lib/admin-stats';
+import { siteIdOf } from '@/lib/site-constants';
 import RecentLeadsTable from '@/components/admin/RecentLeadsTable';
 import ActivityStrip from '@/components/admin/dashboard/ActivityStrip';
 import TrendChart from '@/components/admin/dashboard/TrendChart';
@@ -15,8 +17,17 @@ const FOUNDING_TARGET = 50;
 
 export default async function AdminDashboardPage() {
   const session = await requireSection('dashboard');
+  const { site } = await getAdminSiteContext();
+  const hasLeaders = Boolean(site?.modules.includes('leaders'));
+  const hasVoices = Boolean(site?.modules.includes('voices'));
 
-  const [leads, leaders, voices] = await Promise.all([getAllLeads(), getAllLeadersAdmin(), getVoiceCounts()]);
+  const [allLeads, leaders, voices] = await Promise.all([
+    getAllLeads(),
+    hasLeaders && site ? getAllLeadersAdmin(site.id) : Promise.resolve([]),
+    hasVoices && site ? getVoiceCounts(site.id) : Promise.resolve({ total: 0, published: 0 }),
+  ]);
+  // A website shows its own leads; "All websites" shows every lead.
+  const leads = site ? allLeads.filter((l) => siteIdOf(l) === site.id) : allLeads;
   const dashboard = buildDashboard(leads, leaders);
 
   const total = leads.length;
@@ -24,6 +35,9 @@ export default async function AdminDashboardPage() {
   const approvedCount = leads.filter((l) => l.status === 'approved').length;
   const liveLeaders = leaders.filter((l) => l.published).length;
   const pct = (part: number, whole: number) => (whole ? (part / whole) * 100 : 0);
+  // Leads from the last 30 days, already bucketed for the mix chart.
+  const thisMonth = dashboard.mix.month.reduce((n, slice) => n + slice.count, 0);
+  const partners = leads.filter((l) => l.type === 'partner').length;
 
   const radials = [
     {
@@ -35,24 +49,44 @@ export default async function AdminDashboardPage() {
       colorTo: '#C9BBFF',
       href: '/admin/leads',
     },
-    {
-      title: 'Founding 50',
-      caption: 'seats filled',
-      value: liveLeaders,
-      percent: pct(liveLeaders, FOUNDING_TARGET),
-      color: '#F25F5C',
-      colorTo: '#FFB3B1',
-      href: '/admin/leaders',
-    },
-    {
-      title: 'Voices',
-      caption: 'published',
-      value: voices.total,
-      percent: pct(voices.published, voices.total),
-      color: '#FFB547',
-      colorTo: '#FFE2AE',
-      href: '/admin/voices',
-    },
+    hasLeaders
+      ? {
+          title: 'Founding 50',
+          caption: 'seats filled',
+          value: liveLeaders,
+          percent: pct(liveLeaders, FOUNDING_TARGET),
+          color: '#F25F5C',
+          colorTo: '#FFB3B1',
+          href: '/admin/leaders',
+        }
+      : {
+          title: 'This month',
+          caption: 'of all leads',
+          value: thisMonth,
+          percent: pct(thisMonth, total),
+          color: '#F25F5C',
+          colorTo: '#FFB3B1',
+          href: '/admin/leads',
+        },
+    hasVoices
+      ? {
+          title: 'Voices',
+          caption: 'published',
+          value: voices.total,
+          percent: pct(voices.published, voices.total),
+          color: '#FFB547',
+          colorTo: '#FFE2AE',
+          href: '/admin/voices',
+        }
+      : {
+          title: 'Partners',
+          caption: 'of all leads',
+          value: partners,
+          percent: pct(partners, total),
+          color: '#FFB547',
+          colorTo: '#FFE2AE',
+          href: '/admin/leads',
+        },
     {
       title: 'Approved',
       caption: 'approval rate',
@@ -65,6 +99,7 @@ export default async function AdminDashboardPage() {
   ];
 
   const firstName = session.name.split(' ')[0] || session.email.split('@')[0];
+  const scope = site ? site.name : 'all your websites';
 
   return (
     <div className={styles.page}>
@@ -78,17 +113,19 @@ export default async function AdminDashboardPage() {
           </h1>
           <p>
             {newCount > 0
-              ? `${newCount} new application${newCount > 1 ? 's' : ''} waiting for review.`
-              : 'Your inbox is clear. Here’s how the community is growing.'}
+              ? `${newCount} new application${newCount > 1 ? 's' : ''} waiting for review on ${scope}.`
+              : `Your inbox is clear. Here’s how ${scope} ${site ? 'is' : 'are'} growing.`}
           </p>
         </div>
         <div className={styles.helloActions}>
           <Link href="/admin/leads" className={`${styles.btn} ${styles.btnGhost}`}>
             <IconInbox size={16} /> Review inbox
           </Link>
-          <Link href="/admin/leaders" className={`${styles.btn} ${styles.btnPrimary}`}>
-            <IconPlus size={16} /> Add leader
-          </Link>
+          {hasLeaders && (
+            <Link href="/admin/leaders" className={`${styles.btn} ${styles.btnPrimary}`}>
+              <IconPlus size={16} /> Add leader
+            </Link>
+          )}
         </div>
       </div>
 

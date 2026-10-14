@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CommunityVoice } from '@/types';
 import { saveVoice, deleteVoice } from '@/app/actions/admin';
 
-export default function VoicesManager({ initialVoices }: { initialVoices: CommunityVoice[] }) {
+export default function VoicesManager({ siteId, initialVoices }: { siteId: string; initialVoices: CommunityVoice[] }) {
   const [voices, setVoices] = useState<CommunityVoice[]>(initialVoices);
   const [editingVoice, setEditingVoice] = useState<Partial<CommunityVoice> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,7 +27,7 @@ export default function VoicesManager({ initialVoices }: { initialVoices: Commun
       published: editingVoice.published ?? true,
     };
 
-    const res = await saveVoice(voiceData);
+    const res = await saveVoice(siteId, voiceData);
     if (res.success) {
       if (editingVoice.id) {
         setVoices((prev) =>
@@ -45,7 +45,7 @@ export default function VoicesManager({ initialVoices }: { initialVoices: Commun
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to remove this quote?')) return;
-    const res = await deleteVoice(id);
+    const res = await deleteVoice(siteId, id);
     if (res.success) {
       setVoices((prev) => prev.filter((v) => v.id !== id));
     }

@@ -69,6 +69,30 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## 🌐 Managing Multiple Websites
+
+The admin dashboard is a shared hub. This app renders **The CX Assembly** (site id `cx-assembly`). Any other website (its own codebase, its own design) can use the same dashboard for its leads and content.
+
+- **Add a website**: super admins open **Websites** (`/admin/sites`), add the site, then create its API key. The key is shown once; store it on that website as a server-side env var (e.g. `ASSEMBLY_API_KEY`).
+- **Switch websites**: the selector at the top of the dashboard changes which site the Dashboard, Content, Settings, Leaders and Voices pages manage. **All websites** shows combined leads and stats.
+- **Leads**: one inbox for every site, filterable by website, with the button (`source.cta`) and page each lead came from. CSV export includes both.
+- **Content**: CX Assembly keeps its page editor. Other sites get free-form sections of text and list fields, read as `content.<section>.<field>`. Leaders and testimonials can be turned on per site.
+
+### Website API
+
+All requests send the site's key in the `x-api-key` header. Call it from server code; browser calls also work for origins you allow on the Websites page.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/v1/content` | `{ site, settings, content, leaders?, voices? }`, published items only |
+| `POST /api/v1/leads` | Stores a form submission. Requires `fullName` and `email`. Optional: `company`, `designation`, `phone`, `linkedinUrl`, `message`, `type` (`cx_leader` / `partner` / `other`), `source: { cta, page }`, `extra: { …any other fields }`, `hp_field` (honeypot). Returns `201 { ok, id }`, or `401` / `422` / `503`. |
+
+Only show a "thank you" to visitors after a `201`; anything else means the lead wasn't saved.
+
+**Where data lives**: leads are in the top-level `leads` collection with a `siteId` (older leads without one belong to `cx-assembly`). CX Assembly's content stays in its original top-level collections; every other site's content is under `sites/{siteId}/…`, next to its settings and hashed API key.
+
+---
+
 ## 📦 Deployment to Firebase App Hosting
 
 1. Push your changes to GitHub:
