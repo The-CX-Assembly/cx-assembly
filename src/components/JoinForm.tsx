@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { usePathname } from 'next/navigation';
+import { readAttribution } from '@/lib/attribution';
 import { submitLead, SubmitLeadState } from '@/app/actions/leads';
 import { ArrowRight } from '@/components/Icons';
 
@@ -18,6 +19,7 @@ const FIELDS = [
 export default function JoinForm({ source }: { source: string }) {
   const [state, formAction, isPending] = useActionState(submitLead, initialState);
   const pathname = usePathname();
+  const visit = readAttribution();
 
   if (state.success) {
     return (
@@ -37,7 +39,11 @@ export default function JoinForm({ source }: { source: string }) {
       <input type="hidden" name="type" value="cx_leader" />
       <input type="hidden" name="source_cta" value={source} />
       <input type="hidden" name="source_page" value={pathname} />
-      <input type="hidden" name="source_referrer" value={document.referrer} />
+      <input type="hidden" name="source_referrer" value={visit.referrer ?? ''} />
+      <input type="hidden" name="source_landing_page" value={visit.landing_page ?? ''} />
+      {(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const).map((k) => (
+        <input key={k} type="hidden" name={k} value={visit[k] ?? ''} />
+      ))}
 
       {/* Honeypot */}
       <div className="sr-only" aria-hidden="true">

@@ -55,7 +55,7 @@ interface AdminShellProps {
 const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' | 'sites' }[] = [
   { label: 'Dashboard', href: '/admin', section: 'dashboard' },
   { label: 'Leads', href: '/admin/leads', section: 'leads' },
-  { label: 'Leaders', href: '/admin/leaders', section: 'leaders' },
+  { label: 'CMO Speakers', href: '/admin/leaders', section: 'leaders' },
   { label: 'Content', href: '/admin/content', section: 'content' },
   { label: 'Websites', href: '/admin/sites', section: 'sites' },
   { label: 'Users', href: '/admin/users', section: 'users' },
@@ -131,7 +131,7 @@ export default function AdminShell({
 
   const isSuperadmin = user.role === 'superadmin';
   const site = sites.find((s) => s.id === siteId) ?? null;
-  // Leader profiles only exist on websites that use them.
+  // CMO Speaker profiles only exist on websites that use them.
   const hasModule = (section: AdminSection | 'users' | 'sites') =>
     section !== 'leaders' || Boolean(site?.modules.includes(section));
   const allowed = (section: AdminSection | 'users' | 'sites') =>
@@ -142,7 +142,7 @@ export default function AdminShell({
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
     { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
-    { label: 'Founding Leaders', href: '/admin/leaders', icon: IconStar, section: 'leaders' as const, badge: leaderCount },
+    { label: 'CMO Speakers', href: '/admin/leaders', icon: IconStar, section: 'leaders' as const, badge: leaderCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
     { label: 'Websites', href: '/admin/sites', icon: IconGlobe, section: 'sites' as const },

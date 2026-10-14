@@ -64,6 +64,12 @@ export async function submitLead(
       cta: field(formData, 'source_cta', 80),
       page: field(formData, 'source_page'),
       referrer: field(formData, 'source_referrer', 500),
+      landingPage: field(formData, 'source_landing_page'),
+      utmSource: field(formData, 'utm_source', 100),
+      utmMedium: field(formData, 'utm_medium', 100),
+      utmCampaign: field(formData, 'utm_campaign', 150),
+      utmTerm: field(formData, 'utm_term', 150),
+      utmContent: field(formData, 'utm_content', 150),
     },
   });
 

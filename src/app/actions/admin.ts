@@ -131,18 +131,21 @@ export async function saveLeader(siteId: string, leader: Omit<Leader, 'id'> & { 
     const now = new Date().toISOString();
     const leaders = siteCollection(db, siteId, 'leaders');
 
+    let savedId = id;
     if (id && !id.startsWith('temp-')) {
       await leaders.doc(id).set({ ...data, updatedAt: now }, { merge: true });
     } else {
-      await leaders.add({
+      const ref = await leaders.add({
         ...data,
         createdAt: now,
         updatedAt: now,
       });
+      savedId = ref.id;
     }
 
     revalidateSite(siteId, '/admin/leaders', ['/', '/founding-50']);
-    return { success: true };
+    // The editor keeps this id, so a later edit updates the same record.
+    return { success: true, id: savedId };
   } catch (error) {
     console.error('Error saving leader:', error);
     return { success: false, error: 'Failed to save leader' };

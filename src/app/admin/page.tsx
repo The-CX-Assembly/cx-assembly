@@ -5,7 +5,7 @@ import { getAllLeadersAdmin } from '@/lib/content';
 import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/lib/admin-stats';
 import { siteIdOf } from '@/lib/site-constants';
 import RecentLeadsTable from '@/components/admin/RecentLeadsTable';
-import ActivityStrip from '@/components/admin/dashboard/ActivityStrip';
+import LeadSources from '@/components/admin/dashboard/LeadSources';
 import TrendChart from '@/components/admin/dashboard/TrendChart';
 import PipelineBars from '@/components/admin/dashboard/PipelineBars';
 import RadialStat from '@/components/admin/dashboard/RadialStat';
@@ -13,7 +13,6 @@ import MixGauge from '@/components/admin/dashboard/MixGauge';
 import { IconInbox, IconPlus } from '@/components/admin/AdminIcons';
 import styles from '@/components/admin/dashboard/dashboard.module.css';
 
-const FOUNDING_TARGET = 50;
 
 export default async function AdminDashboardPage() {
   const session = await requireSection('dashboard');
@@ -26,7 +25,7 @@ export default async function AdminDashboardPage() {
   ]);
   // A website shows its own leads; "All websites" shows every lead.
   const leads = site ? allLeads.filter((l) => siteIdOf(l) === site.id) : allLeads;
-  const dashboard = buildDashboard(leads, leaders);
+  const dashboard = buildDashboard(leads);
 
   const total = leads.length;
   const newCount = leads.filter((l) => l.status === 'new').length;
@@ -49,10 +48,10 @@ export default async function AdminDashboardPage() {
     },
     hasLeaders
       ? {
-          title: 'Founding 50',
-          caption: 'seats filled',
+          title: 'CMO Speakers',
+          caption: 'published',
           value: liveLeaders,
-          percent: pct(liveLeaders, FOUNDING_TARGET),
+          percent: pct(liveLeaders, leaders.length),
           color: '#F25F5C',
           colorTo: '#FFB3B1',
           href: '/admin/leaders',
@@ -111,7 +110,7 @@ export default async function AdminDashboardPage() {
           </Link>
           {hasLeaders && (
             <Link href="/admin/leaders" className={`${styles.btn} ${styles.btnPrimary}`}>
-              <IconPlus size={16} /> Add leader
+              <IconPlus size={16} /> Add speaker
             </Link>
           )}
         </div>
@@ -119,7 +118,7 @@ export default async function AdminDashboardPage() {
 
       <div className={styles.grid}>
         <div className={styles.full}>
-          <ActivityStrip items={dashboard.activity} />
+          <LeadSources sources={dashboard.sources} />
         </div>
 
         <TrendChart series={dashboard.trend} />

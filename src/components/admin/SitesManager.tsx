@@ -236,7 +236,7 @@ export default function SitesManager({
                       style={{ ...ghostBtn, color: '#B91C1C', borderColor: '#FECACA' }}
                       disabled={busy}
                       onClick={() => {
-                        if (confirm(`Remove ${s.name}? Its content and leaders are deleted. Its leads stay in the inbox.`)) {
+                        if (confirm(`Remove ${s.name}? Its content and CMO Speakers are deleted. Its leads stay in the inbox.`)) {
                           run(() => deleteSite(s.id));
                         }
                       }}
@@ -340,7 +340,7 @@ export default function SitesManager({
             1. Add the website above and create its API key. 2. Save the key on that website as a server-side environment
             variable. 3. Call these two endpoints from its server code:
           </p>
-          <p style={{ fontWeight: 700 }}>Fetch content (settings, sections, and leaders if turned on)</p>
+          <p style={{ fontWeight: 700 }}>Fetch content (settings, sections, and CMO Speakers if turned on)</p>
           <code style={code}>{`const res = await fetch('${baseUrl}/api/v1/content', {
   headers: { 'x-api-key': process.env.ASSEMBLY_API_KEY },
   next: { revalidate: 60 }, // Next.js: refresh at most once a minute
@@ -356,7 +356,10 @@ const { settings, content, leaders } = await res.json();
     email: 'jane@company.com',       // required
     company: 'Acme', designation: 'CMO', phone: '', linkedinUrl: '', message: '',
     type: 'other',                   // 'cx_leader' | 'partner' | 'other'
-    source: { cta: 'hero', page: '/about' },   // which button, which page
+    source: {                        // which button and page, and the campaign link the visit started on
+      cta: 'hero', page: '/about', landingPage: '/', referrer: 'https://www.linkedin.com/',
+      utmSource: 'linkedin', utmMedium: 'social', utmCampaign: 'launch',
+    },
     extra: { city: 'Mumbai' },       // any other form fields
     hp_field: '',                    // honeypot: leave empty
   }),

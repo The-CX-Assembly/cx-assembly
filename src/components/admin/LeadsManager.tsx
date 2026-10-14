@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { Lead, LeadStatus } from '@/types';
 import { updateLeadStatus } from '@/app/actions/admin';
 import { ALL_SITES, siteIdOf } from '@/lib/site-constants';
+import Pagination from './Pagination';
+
+const PAGE_SIZE = 20;
 
 /** "for-leaders-tile" → "For leaders tile" */
 const ctaLabel = (cta?: string) => (cta ? cta.charAt(0).toUpperCase() + cta.slice(1).replace(/[-_]/g, ' ') : '');
@@ -26,6 +29,7 @@ export default function LeadsManager({
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [page, setPage] = useState(1);
 
   const multiSite = sites.length > 1;
   const siteName = (lead: Lead) => sites.find((s) => s.id === siteIdOf(lead))?.name ?? siteIdOf(lead);
@@ -43,6 +47,15 @@ export default function LeadsManager({
 
     return matchesSearch && matchesSite && matchesStatus && matchesType;
   });
+
+  const pageCount = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageLeads = filteredLeads.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Any filter change starts again from the first page.
+  const filterChange = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    set(e.target.value);
+    setPage(1);
+  };
 
   // Handle status update
   const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
@@ -81,6 +94,13 @@ export default function LeadsManager({
       'Status',
       'Source Button',
       'Source Page',
+      'Landing Page',
+      'Referrer',
+      'UTM Source',
+      'UTM Medium',
+      'UTM Campaign',
+      'UTM Term',
+      'UTM Content',
       'Extra Fields',
       'Submitted At',
     ];
@@ -100,6 +120,13 @@ export default function LeadsManager({
       cell(lead.status),
       cell(lead.source?.cta),
       cell(lead.source?.page),
+      cell(lead.source?.landingPage),
+      cell(lead.source?.referrer),
+      cell(lead.source?.utmSource),
+      cell(lead.source?.utmMedium),
+      cell(lead.source?.utmCampaign),
+      cell(lead.source?.utmTerm),
+      cell(lead.source?.utmContent),
       cell(lead.extra ? JSON.stringify(lead.extra) : ''),
       cell(lead.createdAt),
     ]);
@@ -143,7 +170,7 @@ export default function LeadsManager({
               type="text"
               placeholder="Search by name, company, email..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={filterChange(setSearchTerm)}
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -159,7 +186,7 @@ export default function LeadsManager({
           {multiSite && (
             <select
               value={siteFilter}
-              onChange={(e) => setSiteFilter(e.target.value)}
+              onChange={filterChange(setSiteFilter)}
               aria-label="Website"
               style={{
                 padding: '10px 14px',
@@ -182,7 +209,7 @@ export default function LeadsManager({
           {/* Status Filter */}
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={filterChange(setStatusFilter)}
             style={{
               padding: '10px 14px',
               borderRadius: 'var(--radius-sm)',
@@ -202,7 +229,7 @@ export default function LeadsManager({
           {/* Type Filter */}
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={filterChange(setTypeFilter)}
             style={{
               padding: '10px 14px',
               borderRadius: 'var(--radius-sm)',
@@ -254,7 +281,7 @@ export default function LeadsManager({
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map((lead) => (
+                {pageLeads.map((lead) => (
                   <tr
                     key={lead.id}
                     style={{ borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
@@ -282,8 +309,15 @@ export default function LeadsManager({
                     <td style={{ padding: '16px 18px', fontSize: '0.8125rem' }}>
                       {lead.source?.cta || lead.source?.page ? (
                         <>
+                          {lead.source.utmCampaign && (
+                            <span className="badge-pill badge-navy" style={{ fontSize: '0.6875rem', marginBottom: 4, display: 'inline-block' }}>
+                              {lead.source.utmCampaign}
+                            </span>
+                          )}
                           <div style={{ fontWeight: 600 }}>{ctaLabel(lead.source.cta) || '—'}</div>
-                          {lead.source.page && <div style={{ color: 'var(--color-text-muted)' }}>{lead.source.page}</div>}
+                          <div style={{ color: 'var(--color-text-muted)' }}>
+                            {[lead.source.utmSource, lead.source.page].filter(Boolean).join(' · ')}
+                          </div>
                         </>
                       ) : (
                         <span style={{ color: 'var(--color-text-muted)' }}>Not tracked</span>
@@ -351,6 +385,7 @@ export default function LeadsManager({
             </table>
           </div>
         )}
+        <Pagination page={currentPage} pageSize={PAGE_SIZE} total={filteredLeads.length} onChange={setPage} noun="leads" />
       </div>
 
       {/* Lead Details Drawer / Modal */}
@@ -453,6 +488,29 @@ export default function LeadsManager({
                     : 'Not tracked'}
                 </span>
               </div>
+              {(selectedLead.source?.utmCampaign || selectedLead.source?.utmSource) && (
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Campaign</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-primary)', wordBreak: 'break-word' }}>
+                    {[selectedLead.source.utmCampaign, selectedLead.source.utmSource, selectedLead.source.utmMedium]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+              )}
+              {(selectedLead.source?.landingPage || selectedLead.source?.referrer) && (
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Landed on</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-primary)', wordBreak: 'break-word' }}>
+                    {selectedLead.source.landingPage || '—'}
+                    {selectedLead.source.referrer && (
+                      <span style={{ display: 'block', fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
+                        from {selectedLead.source.referrer}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
               {selectedLead.extra &&
                 Object.entries(selectedLead.extra).map(([key, value]) => (
                   <div key={key}>

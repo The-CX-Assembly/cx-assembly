@@ -4,12 +4,22 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Leader } from '@/types';
 import { saveLeader, deleteLeader, reorderLeaders, uploadLeaderPhoto } from '@/app/actions/admin';
+import Pagination from './Pagination';
+
+const PAGE_SIZE = 10;
 
 export default function LeadersManager({ siteId, initialLeaders }: { siteId: string; initialLeaders: Leader[] }) {
   const [leaders, setLeaders] = useState<Leader[]>(initialLeaders);
   const [editingLeader, setEditingLeader] = useState<Partial<Leader> | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const pageCount = Math.max(1, Math.ceil(leaders.length / PAGE_SIZE));
+  // Stay on a real page after deletions shrink the list.
+  const currentPage = Math.min(page, pageCount);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  const pageLeaders = leaders.slice(offset, offset + PAGE_SIZE);
 
   // Reorder up/down
   const moveLeader = async (index: number, direction: 'up' | 'down') => {
@@ -75,17 +85,19 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
           prev.map((l) => (l.id === editingLeader.id ? ({ ...leaderData, id: l.id } as Leader) : l))
         );
       } else {
-        setLeaders((prev) => [...prev, { ...leaderData, id: `leader-${Date.now()}` } as Leader]);
+        // Use the stored id so editing this speaker again updates the same record.
+        setLeaders((prev) => [...prev, { ...leaderData, id: res.id ?? `temp-${Date.now()}` } as Leader]);
+        setPage(Math.ceil((leaders.length + 1) / PAGE_SIZE));
       }
       setEditingLeader(null);
     } else {
-      alert('Failed to save leader profile.');
+      alert(res.error ?? 'Failed to save the speaker profile.');
     }
     setIsSaving(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this founding leader?')) return;
+    if (!confirm('Are you sure you want to remove this CMO Speaker?')) return;
     const res = await deleteLeader(siteId, id);
     if (res.success) {
       setLeaders((prev) => prev.filter((l) => l.id !== id));
@@ -96,7 +108,7 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem' }}>
-          Manage the roster of India’s Founding CX Leaders. Changes update the public site immediately.
+          Manage the CMO Speakers shown on the website. Changes update the public site immediately.
         </p>
         <button
           onClick={() =>
@@ -114,17 +126,17 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
           className="btn btn-primary"
           style={{ padding: '10px 20px', fontSize: '0.875rem' }}
         >
-          + Add New Leader
+          + Add CMO Speaker
         </button>
       </div>
 
-      {/* Leaders Table */}
+      {/* Speakers Table */}
       <div style={{ background: '#FFFFFF', borderRadius: 'var(--radius-lg)', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: 'var(--color-text-muted)' }}>
               <th style={{ padding: '14px 18px', width: '70px' }}>Order</th>
-              <th style={{ padding: '14px 18px' }}>Leader</th>
+              <th style={{ padding: '14px 18px' }}>Speaker</th>
               <th style={{ padding: '14px 18px' }}>Designation & Company</th>
               <th style={{ padding: '14px 18px' }}>LinkedIn</th>
               <th style={{ padding: '14px 18px' }}>Status</th>
@@ -132,7 +144,10 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
             </tr>
           </thead>
           <tbody>
-            {leaders.map((leader, idx) => (
+            {pageLeaders.map((leader, i) => {
+              // Position in the full list: ordering spans pages.
+              const idx = offset + i;
+              return (
               <tr key={leader.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                 <td style={{ padding: '14px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -216,9 +231,11 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
+        <Pagination page={currentPage} pageSize={PAGE_SIZE} total={leaders.length} onChange={setPage} noun="speakers" />
       </div>
 
       {/* Add / Edit Leader Modal */}
@@ -257,14 +274,14 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
             </button>
 
             <h2 style={{ fontSize: '1.375rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '24px' }}>
-              {editingLeader.id ? 'Edit Founding Leader' : 'Add Founding Leader'}
+              {editingLeader.id ? 'Edit CMO Speaker' : 'Add CMO Speaker'}
             </h2>
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Photo Upload & Preview */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '8px' }}>
-                  Leader Headshot Photo
+                  Speaker Headshot Photo
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', background: '#F1F5F9', border: '2px solid #CBD5E1' }}>
@@ -387,7 +404,7 @@ export default function LeadersManager({ siteId, initialLeaders }: { siteId: str
                   className="btn btn-primary"
                   style={{ flex: 1, padding: '12px' }}
                 >
-                  {isSaving ? 'Saving...' : 'Save Leader Profile'}
+                  {isSaving ? 'Saving...' : 'Save Speaker Profile'}
                 </button>
                 <button
                   type="button"
