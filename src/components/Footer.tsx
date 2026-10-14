@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="site-footer" id="contact">
       <div className="wrap">
         <div className="footer__brand">
-          <Image src="/brand/mark-light.png" alt="" width={750} height={425} className="footer__mark" />
+          <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="footer__mark" />
           <p className="footer__word">The CX Assembly</p>
         </div>
 

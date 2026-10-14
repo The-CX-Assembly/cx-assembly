@@ -2,14 +2,15 @@
  * Editorial headline: the first sentence sits in full ink, the rest fades back.
  * Single-sentence headlines fade their last two words instead.
  */
-export function Accent({ text }: { text: string }) {
+export function Accent({ text, stacked = false }: { text: string; stacked?: boolean }) {
   const sentences = text.match(/[^.!?]+[.!?]+/g)?.map((s) => s.trim());
 
   if (sentences && sentences.length > 1) {
     const [first, ...rest] = sentences;
     return (
       <>
-        {first} <span className="soft">{rest.join(' ')}</span>
+        {first} {stacked && <br />}
+        <span className="soft">{rest.join(' ')}</span>
       </>
     );
   }
