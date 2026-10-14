@@ -7,6 +7,7 @@ import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/lib/seo';
 import { JoinModalProvider } from '@/components/JoinModal';
 import GoogleTagManager from '@/components/GoogleTagManager';
 import JsonLd from '@/components/JsonLd';
+import ScrollReset from '@/components/ScrollReset';
 
 const monaSans = Mona_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -67,7 +68,7 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
 
   return (
-    <html lang="en-IN" className={monaSans.variable}>
+    <html lang="en-IN" className={monaSans.variable} data-scroll-behavior="smooth">
       <head>
         <JsonLd
           data={siteGraph({
@@ -79,6 +80,7 @@ export default async function RootLayout({
       </head>
       <body>
         <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
+        <ScrollReset />
         <JoinModalProvider>{children}</JoinModalProvider>
       </body>
     </html>
