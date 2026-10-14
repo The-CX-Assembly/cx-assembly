@@ -16,4 +16,4 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     value: the-cx-assembly.firebaseapp.com
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: the-cx-assembly.appspot.com
+    value: the-cx-assembly.firebasestorage.app
