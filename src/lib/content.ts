@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { getAdminDb } from './firebase-admin';
 import {
   defaultContent,
@@ -61,7 +62,8 @@ export async function getLeaders(): Promise<Leader[]> {
   }
 }
 
-export async function getAllLeadersAdmin(): Promise<Leader[]> {
+// Cached per request so the admin layout and page share one query.
+export const getAllLeadersAdmin = cache(async (): Promise<Leader[]> => {
   const db = getAdminDb();
   if (!db) return sampleLeaders;
 
@@ -78,7 +80,7 @@ export async function getAllLeadersAdmin(): Promise<Leader[]> {
     console.warn('Error fetching all leaders:', error);
     return sampleLeaders;
   }
-}
+});
 
 export async function getVoices(): Promise<CommunityVoice[]> {
   const db = getAdminDb();

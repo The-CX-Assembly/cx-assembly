@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 import { getAdminDb } from '@/lib/firebase-admin';
+import { getAdminSession } from '@/lib/auth-session';
 import {
   defaultContent,
   defaultSettings,
@@ -7,11 +9,20 @@ import {
   sampleVoices,
 } from '@/lib/default-content';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
+function hasSeedSecret(request: Request) {
+  const expected = process.env.ADMIN_SESSION_SECRET;
+  const given = request.headers.get('x-seed-secret');
+  if (!expected || expected.length < 32 || !given) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
-  if (secret !== 'CXAssembly2026!' && secret !== process.env.ADMIN_SESSION_SECRET) {
+// Overwrites live content, so only a signed-in super admin (or a caller holding the
+// server secret in the x-seed-secret header) may run it.
+export async function GET(request: Request) {
+  const user = await getAdminSession();
+  if (user?.role !== 'superadmin' && !hasSeedSecret(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

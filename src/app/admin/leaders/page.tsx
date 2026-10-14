@@ -1,13 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
+import { requireSection } from '@/lib/auth-session';
 import { getAllLeadersAdmin } from '@/lib/content';
 import LeadersManager from '@/components/admin/LeadersManager';
 
 export default async function AdminLeadersPage() {
-  const session = await getAdminSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
+  await requireSection('leaders');
 
   const leaders = await getAllLeadersAdmin();
 

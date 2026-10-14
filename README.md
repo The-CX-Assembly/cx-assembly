@@ -58,8 +58,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🔐 Admin CMS Portal
 
 - **URL**: `http://localhost:3000/admin/login`
-- **Default Admin Account**: `abhishekroks12345@gmail.com`
-- **Password**: Configurable via `ADMIN_PASSWORD` in `.env.local` (Default: `CXAssembly2026!`)
+- **Sign-in**: "Continue with Google", or email + password (Firebase Authentication). Access is invitation-only.
+- **Super admins** (full access, including **Users & Access** at `/admin/users`) are defined in `src/lib/admin-users.ts`. They can invite users, choose each person's role and sections, and disable or remove them.
+- **One-time Firebase setup**:
+  1. Firebase Console → Authentication → Sign-in method: enable **Google** and **Email/Password**.
+  2. Authentication → Settings → Authorized domains: add your App Hosting domain (`localhost` is allowed by default).
+  3. Create the session secret before deploying: `firebase apphosting:secrets:set ADMIN_SESSION_SECRET`.
+  4. Deploy rules after changes: `firebase deploy --only firestore:rules`.
+- **Local development** needs `ADMIN_SESSION_SECRET` in `.env.local`. Without service-account credentials, only built-in super admins can sign in and sample content is shown.
 
 ---
 
