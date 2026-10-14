@@ -1,14 +1,29 @@
+import { Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import LeaderCard from '@/components/LeaderCard';
+import HeroArt from '@/components/HeroArt';
+import InView from '@/components/InView';
+import PhilosophyShowcase from '@/components/PhilosophyShowcase';
+import RevealWords, { sentenceLines } from '@/components/RevealWords';
 import { JoinButton } from '@/components/JoinModal';
 import { Accent, Eyebrow } from '@/components/Type';
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@/components/Icons';
+import {
+  ArrowDownRight,
+  ArrowRight,
+  BookIcon,
+  ChatIcon,
+  SparkIcon,
+  UsersIcon,
+} from '@/components/Icons';
 import { getSiteContent, getLeaders, getSiteSettings } from '@/lib/content';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
+
+// Icons for the four Why We Exist boxes, in order
+const WHY_ICONS = [SparkIcon, BookIcon, ChatIcon, UsersIcon];
 
 // Short labels for the three For Partners paragraphs (paragraph1–3 in the CMS)
 const PARTNER_TITLES = ['Built Through Collaboration', 'Understanding Before Solutions', 'Meaningful Industry Engagement'];
@@ -30,6 +45,15 @@ export default async function HomePage() {
 
   const [principleLead, principleBody] = splitAtColon(forPartners.principle);
   const [beliefLead, belief] = splitAtColon(aboutUs.paragraph3);
+  // Boxes: paragraph1, paragraph2, then paragraph3 split into its first sentence and the rest
+  const [p3First, ...p3Rest] = whyWeExist.paragraph3.match(/[^.!?]+[.!?]+/g)?.map((s) => s.trim()) ?? [
+    whyWeExist.paragraph3,
+  ];
+  const whyBoxes = [whyWeExist.paragraph1, whyWeExist.paragraph2, p3First, p3Rest.join(' ')].filter(Boolean);
+  const heroWords = hero.headline.trim().split(/\s+/);
+  const heroLeaders = leaders.slice(0, 4);
+  // "50 Founding CX Leaders" → big number + label
+  const [, foundingNum = '', foundingLabel = settings.foundingCount] = settings.foundingCount.match(/^(\d+)\s+(.+)$/) ?? [];
   const credibility = [settings.credibilityText, settings.foundingCount].filter(Boolean);
   const marqueeRun = [...credibility, ...credibility, ...credibility];
 
@@ -40,26 +64,65 @@ export default async function HomePage() {
       <main>
         {/* ── HERO ─────────────────────────────────────────── */}
         <section className="hero">
-          <Image src="/brand/mark-navy.png" alt="" width={750} height={425} className="hero__mark" priority aria-hidden="true" />
-          <div className="wrap">
-            <h1 className="display hero__title rise">
-              <Accent text={hero.headline} />
-            </h1>
+          <div className="wrap hero__grid">
+            <div className="hero__main">
+              <p className="hero__kicker">
+                <span className="hero__pulse" aria-hidden="true" />
+                {hero.tagline}
+              </p>
 
-            <div className="hero__foot rise-2">
-              <div className="hero__copy">
-                <p className="lede">{hero.subheadline}</p>
-                <p className="hero__tagline">{hero.tagline}</p>
-              </div>
+              <h1 className="display hero__title">
+                {heroWords.map((word, i) => (
+                  <Fragment key={i}>
+                    <span className="hw" style={{ '--i': i } as React.CSSProperties}>
+                      <span className={i >= heroWords.length - 2 ? 'hero__em' : undefined}>{word}</span>
+                    </span>{' '}
+                  </Fragment>
+                ))}
+              </h1>
+
+              <p className="lede hero__lede">{hero.subheadline}</p>
+
               <div className="hero__actions">
-                <Link href="/founding-50" className="link-arrow">
-                  {hero.ctaSecondaryText}
-                </Link>
                 <JoinButton>
                   {hero.ctaPrimaryText}
                   <ArrowRight size={16} />
                 </JoinButton>
+                <Link href="/founding-50" className="link-arrow">
+                  {hero.ctaSecondaryText}
+                </Link>
               </div>
+            </div>
+
+            <div className="hero__visual">
+              <div className="hero__panel">
+                <HeroArt />
+                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="hero__panel-mark" priority aria-hidden="true" />
+                {settings.credibilityText && (
+                  <p className="hero__chip">
+                    <span className="hero__pulse hero__pulse--light" aria-hidden="true" />
+                    {settings.credibilityText}
+                  </p>
+                )}
+              </div>
+
+              {settings.foundingCount && (
+                <Link href="/founding-50" className="hero__stat">
+                  {heroLeaders.length > 0 && (
+                    <span className="hero__faces" aria-hidden="true">
+                      {heroLeaders.map((leader) => (
+                        <span key={leader.id} className="hero__face">
+                          <Image src={leader.photoUrl || '/brand/leader-sample-1.jpg'} alt="" fill sizes="48px" style={{ objectFit: 'cover' }} />
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  <span className="hero__stat-text">
+                    {foundingNum && <span className="hero__stat-num">{foundingNum}</span>}
+                    <span className="hero__stat-label">{foundingLabel}</span>
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
         </section>
@@ -72,7 +135,7 @@ export default async function HomePage() {
                 {marqueeRun.map((item, i) => (
                   <span key={i} style={{ display: 'contents' }}>
                     <span className="marquee__item">{item}</span>
-                    <Image src="/brand/mark-navy.png" alt="" width={750} height={425} className="marquee__sep" />
+                    <Image src="/brand/cx-mark-navy.png" alt="" width={916} height={508} className="marquee__sep" />
                   </span>
                 ))}
               </div>
@@ -82,59 +145,65 @@ export default async function HomePage() {
 
         {/* ── 01 WHY WE EXIST ─────────────────────────────── */}
         <section id="why-we-exist" className="section">
-          <div className="wrap split">
-            <div className="split__aside">
+          <div className="wrap">
+            <div className="eyebrow-line">
               <Eyebrow num="01">{whyWeExist.badge}</Eyebrow>
             </div>
-            <div className="split__main">
-              <h2 className="h-xl reveal">
-                <Accent text={whyWeExist.headline} />
-              </h2>
 
-              <div className="split" style={{ marginTop: 'clamp(48px, 6vw, 80px)' }}>
-                <div className="split__half-l prose reveal">
-                  <p>{whyWeExist.paragraph1}</p>
-                  <p>{whyWeExist.paragraph2}</p>
-                </div>
-                <div className="split__half-r prose reveal">
-                  <p>{whyWeExist.paragraph3}</p>
-                </div>
-              </div>
+            <RevealWords lines={sentenceLines(whyWeExist.headline)} className="why-head" />
 
-              <hr className="rule" style={{ margin: 'clamp(48px, 6vw, 80px) 0 32px' }} />
-              <p className="statement reveal">{whyWeExist.conclusion}</p>
-            </div>
+            {/* Story cards: each one slides up and stacks over the last, light to dark */}
+            <ol className="why-stack">
+              {whyBoxes.map((text, i) => {
+                const Icon = WHY_ICONS[i % WHY_ICONS.length];
+                return (
+                  <li key={i} className={`why-card why-card--${i % 4}`} style={{ '--i': i } as React.CSSProperties}>
+                    <div className="why-card__meta">
+                      <span className="why-card__num">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="why-card__steps" aria-hidden="true">
+                        {whyBoxes.map((_, j) => (
+                          <span key={j} className={j <= i ? 'is-on' : undefined} />
+                        ))}
+                      </span>
+                    </div>
+                    <p className="why-card__text">{text}</p>
+                    <span className="why-card__orb" aria-hidden="true">
+                      <span className="why-card__ring" />
+                      <span className="why-card__icon">
+                        <Icon size={34} />
+                      </span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <InView className="why-body" threshold={0.3}>
+              <p className="why-conclusion">
+                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="why-conclusion__mark" />
+                <span className="why-conclusion__text">{whyWeExist.conclusion}</span>
+              </p>
+            </InView>
           </div>
         </section>
 
         {/* ── 02 PHILOSOPHY ───────────────────────────────── */}
         <section className="section section--ink">
           <div className="wrap">
-            <div className="split" style={{ marginBottom: 'clamp(56px, 7vw, 104px)' }}>
-              <div className="split__aside">
-                <Eyebrow num="02">{philosophy.badge}</Eyebrow>
-              </div>
-              <div className="split__main">
-                <h2 className="h-xl reveal">
-                  <Accent text={philosophy.headline} />
-                </h2>
-                {philosophy.intro && (
-                  <p className="lede reveal" style={{ marginTop: 32, maxWidth: '56ch' }}>
-                    {philosophy.intro}
-                  </p>
-                )}
-              </div>
+            <div className="eyebrow-line">
+              <Eyebrow num="02">{philosophy.badge}</Eyebrow>
             </div>
 
-            <ol className="rows">
-              {philosophy.pillars.map((pillar, idx) => (
-                <li key={pillar.title} className="row reveal">
-                  <span className="row__num">0{idx + 1}</span>
-                  <h3 className="row__title">{pillar.title}</h3>
-                  <p className="row__body">{pillar.description}</p>
-                </li>
-              ))}
-            </ol>
+            <div className="ph-head">
+              <h2 className="h-xl reveal">
+                <Accent text={philosophy.headline} />
+              </h2>
+              {philosophy.intro && <p className="lede reveal">{philosophy.intro}</p>}
+            </div>
+
+            <div className="reveal">
+              <PhilosophyShowcase pillars={philosophy.pillars} />
+            </div>
           </div>
         </section>
 
@@ -240,7 +309,7 @@ export default async function HomePage() {
             </div>
 
             <div className="principle reveal">
-              <Image src="/brand/mark-light.png" alt="" width={750} height={425} className="principle__mark" aria-hidden="true" />
+              <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="principle__mark" aria-hidden="true" />
               {principleLead && <p className="eyebrow">{principleLead}</p>}
               <p className="principle__text">{principleBody}</p>
             </div>
@@ -250,67 +319,46 @@ export default async function HomePage() {
         {/* ── 06 ABOUT US ─────────────────────────────────── */}
         <section id="about" className="section">
           <div className="wrap">
-            <div className="split">
-              <div className="split__aside">
-                <Eyebrow num="06">{aboutUs.badge}</Eyebrow>
-              </div>
-              <div className="split__main">
-                <h2 className="h-xl reveal">
-                  <Accent text={aboutUs.headline} />
-                </h2>
-                <div className="split" style={{ marginTop: 'clamp(48px, 6vw, 80px)' }}>
-                  <p className="split__half-l lede reveal">{aboutUs.paragraph1}</p>
-                  <p className="split__half-r reveal" style={{ fontSize: '1.0625rem', lineHeight: 1.7 }}>
-                    {aboutUs.paragraph2}
-                  </p>
-                </div>
-              </div>
+            <div className="eyebrow-line">
+              <Eyebrow num="06">{aboutUs.badge}</Eyebrow>
             </div>
 
-            <div className="belief split">
-              <div className="split__aside">
-                <Eyebrow>One shared belief</Eyebrow>
-              </div>
-              <div className="split__main">
-                {beliefLead && (
-                  <p className="muted" style={{ fontSize: '1.0625rem', maxWidth: '60ch' }}>
-                    {beliefLead}:
-                  </p>
-                )}
-                <p className="belief__text reveal">
-                  <mark>{belief}</mark>
-                </p>
-              </div>
+            <div className="ph-head">
+              <RevealWords lines={sentenceLines(aboutUs.headline)} className="h-xl" />
+              <p className="lede reveal">{aboutUs.paragraph1}</p>
             </div>
 
-            <div className="split">
-              <dl className="split__main facts">
-                <div className="facts__item reveal">
-                  <dt>An initiative of</dt>
-                  <dd>
-                    <strong>The Executive Assembly</strong>
-                    Building trusted, peer-led leadership communities.
-                  </dd>
+            {/* The wrapper is observed; the panel inside it is what gets clipped */}
+            <InView className="founder-wrap" threshold={0.1}>
+              <div className="founder-panel">
+                <figure className="founder-panel__photo">
+                  <Image
+                    src="/images/vivek-sheth.jpg"
+                    alt="Vivek Sheth"
+                    fill
+                    sizes="(max-width: 900px) 100vw, 42vw"
+                    style={{ objectFit: 'cover', objectPosition: '55% 20%' }}
+                  />
+                  <figcaption className="founder-panel__caption">{aboutUs.founderNote}</figcaption>
+                </figure>
+
+                <div className="founder-panel__body">
+                  <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="founder-panel__mark" aria-hidden="true" />
+                  <p className="founder-panel__intro">{aboutUs.paragraph2}</p>
+
+                  {/* paragraph3, shown whole: the lead-in small, the belief large */}
+                  <blockquote className="founder-panel__quote">
+                    <span className="founder-panel__qmark" aria-hidden="true">
+                      &ldquo;
+                    </span>
+                    <p>
+                      {beliefLead && <span className="founder-panel__lead">{beliefLead}: </span>}
+                      <span className="founder-panel__belief">{belief}</span>
+                    </p>
+                  </blockquote>
                 </div>
-                <div className="facts__item reveal">
-                  <dt>Founded by</dt>
-                  <dd>
-                    <strong>Vivek Sheth</strong>
-                    {aboutUs.founderNote.replace(/^.*?Vivek Sheth,?\s*/, '').replace(/^\w/, (c) => c.toUpperCase())}
-                  </dd>
-                </div>
-                <div className="facts__item reveal">
-                  <dt>Sister community</dt>
-                  <dd>
-                    <strong>The CMO Assembly</strong>
-                    <a href="https://thecmoassembly.com/" target="_blank" rel="noopener noreferrer" className="link-arrow">
-                      thecmoassembly.com
-                      <ArrowUpRight size={14} />
-                    </a>
-                  </dd>
-                </div>
-              </dl>
-            </div>
+              </div>
+            </InView>
           </div>
         </section>
       </main>

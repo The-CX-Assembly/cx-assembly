@@ -29,12 +29,7 @@ export default function Navbar() {
     <header className="site-header" data-scrolled={scrolled || open}>
       <div className="wrap site-header__bar">
         <Link href="/" className="brand" aria-label="The CX Assembly — home" onClick={() => setOpen(false)}>
-          <Image src="/brand/mark-navy.png" alt="" width={750} height={425} className="brand__mark" priority />
-          <span className="brand__word">
-            The CX
-            <br />
-            Assembly
-          </span>
+          <Image src="/brand/cx-logo-navy.png" alt="" width={966} height={840} className="brand__logo" priority />
         </Link>
 
         <nav className="nav" aria-label="Primary">
