@@ -5,10 +5,13 @@ import Footer from '@/components/Footer';
 import LeaderCard from '@/components/LeaderCard';
 import { JoinButton } from '@/components/JoinModal';
 import { Accent, Eyebrow } from '@/components/Type';
-import { ArrowRight, ArrowUpRight } from '@/components/Icons';
+import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@/components/Icons';
 import { getSiteContent, getLeaders, getSiteSettings } from '@/lib/content';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
+
+// Short labels for the three For Partners paragraphs (paragraph1–3 in the CMS)
+const PARTNER_TITLES = ['Built Through Collaboration', 'Understanding Before Solutions', 'Meaningful Industry Engagement'];
 
 function splitLabel(item: string) {
   const i = item.indexOf(':');
@@ -137,51 +140,58 @@ export default async function HomePage() {
 
         {/* ── 03 FOR CX LEADERS ───────────────────────────── */}
         <section id="for-cx-leaders" className="section">
-          <div className="wrap split">
-            <div className="split__l5 sticky">
+          <div className="wrap">
+            <div className="eyebrow-line">
               <Eyebrow num="03">{forLeaders.badge}</Eyebrow>
-              <h2 className="h-lg" style={{ marginTop: 28 }}>
-                <Accent text={forLeaders.headline} />
-              </h2>
-              <p className="lede" style={{ marginTop: 28 }}>
-                {forLeaders.subheadline}
-              </p>
-              <p style={{ marginTop: 20, fontSize: '1.0625rem', lineHeight: 1.7 }}>{forLeaders.callout}</p>
             </div>
 
-            <div className="split__r6">
-              <p className="eyebrow" style={{ marginBottom: 24 }}>
-                What You Can Expect
-              </p>
-              <ol className="list">
-                {forLeaders.takeaways.map((item, idx) => {
-                  const { title, text } = splitLabel(item);
-                  return (
-                    <li key={item} className="list__item reveal">
-                      <span className="list__num">0{idx + 1}</span>
-                      <div>
-                        <span className="list__title">{title}</span>
-                        {text && <span className="list__text">{text}</span>}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-
-              {forLeaders.closing && (
-                <p className="h-md reveal" style={{ marginTop: 48, maxWidth: '30ch' }}>
-                  {forLeaders.closing}
+            <div className="split" style={{ marginTop: 'clamp(40px, 5vw, 72px)' }}>
+              <div className="split__l5 sticky">
+                <h2 className="caps-head" style={{ marginTop: 0, fontSize: 'clamp(2rem, 3.3vw, 3.125rem)', paddingRight: 16 }}>
+                  {forLeaders.headline}
+                </h2>
+                <p className="lede" style={{ marginTop: 32 }}>
+                  {forLeaders.subheadline}
                 </p>
-              )}
+                <p style={{ marginTop: 20, fontSize: '1.0625rem', lineHeight: 1.7 }}>{forLeaders.callout}</p>
+                {forLeaders.closing && (
+                  <p className="h-md" style={{ marginTop: 40, maxWidth: '28ch' }}>
+                    {forLeaders.closing}
+                  </p>
+                )}
+              </div>
 
-              <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px 28px' }}>
-                <JoinButton>
-                  {forLeaders.ctaText}
-                  <ArrowRight size={16} />
-                </JoinButton>
-                <p className="muted" style={{ fontSize: '0.9375rem', maxWidth: '32ch' }}>
-                  {forLeaders.note}
+              <div className="split__r7">
+                <p className="eyebrow" style={{ marginBottom: 24 }}>
+                  What You Can Expect
                 </p>
+                <ul className="tiles">
+                  {forLeaders.takeaways.map((item) => {
+                    const { title, text } = splitLabel(item);
+                    return (
+                      <li key={item} className="tile reveal">
+                        <div className="tile__head">
+                          <h3 className="tile__title">{title}</h3>
+                          <span className="tile__arrow">
+                            <ArrowDownRight />
+                          </span>
+                        </div>
+                        {text && <p className="tile__text">{text}</p>}
+                      </li>
+                    );
+                  })}
+                  <li className="reveal" style={{ display: 'flex' }}>
+                    <JoinButton className="tile tile--cta">
+                      <span className="tile__head">
+                        <span className="tile__title">{forLeaders.ctaText}</span>
+                        <span className="tile__arrow">
+                          <ArrowRight size={22} />
+                        </span>
+                      </span>
+                      <span className="tile__text">{forLeaders.note}</span>
+                    </JoinButton>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
@@ -214,20 +224,17 @@ export default async function HomePage() {
         {/* ── 05 FOR PARTNERS ─────────────────────────────── */}
         <section id="for-partners" className="section section--ink" style={{ overflow: 'hidden' }}>
           <div className="wrap">
-            <div className="split">
-              <div className="split__aside">
-                <Eyebrow num="05">{forPartners.badge}</Eyebrow>
-              </div>
-              <h2 className="split__main h-xl reveal">
-                <Accent text={forPartners.headline} />
-              </h2>
+            <div className="eyebrow-line">
+              <Eyebrow num="05">{forPartners.badge}</Eyebrow>
             </div>
+            <h2 className="caps-head reveal">{forPartners.headline}</h2>
 
-            <div className="pillars3">
+            <div className="cells">
               {[forPartners.paragraph1, forPartners.paragraph2, forPartners.paragraph3].map((p, i) => (
-                <div key={i} className="pillars3__item reveal">
-                  <span className="row__num">0{i + 1}</span>
-                  <p>{p}</p>
+                <div key={i} className="cell reveal">
+                  <span className="cell__num">0{i + 1}</span>
+                  <h3 className="cell__title">{PARTNER_TITLES[i]}</h3>
+                  <p className="cell__text">{p}</p>
                 </div>
               ))}
             </div>

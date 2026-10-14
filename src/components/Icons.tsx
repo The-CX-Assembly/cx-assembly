@@ -14,6 +14,14 @@ export function ArrowUpRight({ size = 16 }: { size?: number }) {
   );
 }
 
+export function ArrowDownRight({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 7 17 17M17 8v9H8" />
+    </svg>
+  );
+}
+
 export function Plus({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
