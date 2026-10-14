@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { CollectionReference, Firestore } from 'firebase-admin/firestore';
 import { getAdminDb } from './firebase-admin';
 import { DEFAULT_SITE_ID } from './site-constants';
+import { SITE_URL } from './seo';
 import { Site, SiteModule } from '@/types';
 
 export const SITES_COLLECTION = 'sites';
@@ -15,7 +16,7 @@ export const SITES_COLLECTION = 'sites';
 const BUILT_IN_SITE: Site = {
   id: DEFAULT_SITE_ID,
   name: 'The CX Assembly',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://the-cx-assembly.web.app',
+  url: SITE_URL,
   allowedOrigins: [],
   modules: ['leaders'],
   builtIn: true,

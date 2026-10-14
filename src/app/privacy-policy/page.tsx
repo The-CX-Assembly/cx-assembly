@@ -3,11 +3,13 @@ import Footer from '@/components/Footer';
 import { Eyebrow } from '@/components/Type';
 import { getSiteContent } from '@/lib/content';
 import { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | The CX Assembly',
+export const metadata: Metadata = pageMetadata({
+  title: 'Privacy Policy',
   description: 'Privacy Policy and data protection terms for The CX Assembly.',
-};
+  path: '/privacy-policy',
+});
 
 export const revalidate = 60;
 

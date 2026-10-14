@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Mona_Sans } from 'next/font/google';
 import './globals.css';
 import { defaultSettings } from '@/lib/default-content';
+import { getSiteSettings } from '@/lib/content';
+import { SITE_NAME, SITE_URL, pageMetadata } from '@/lib/seo';
 import { JoinModalProvider } from '@/components/JoinModal';
 
 const monaSans = Mona_Sans({
@@ -10,50 +12,36 @@ const monaSans = Mona_Sans({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: 'The CX Assembly — India’s Peer-Led Community for CX Leaders',
-    template: '%s | The CX Assembly',
-  },
-  description: defaultSettings.metaDescription,
-  keywords: [
-    'CX Assembly',
-    'Customer Experience Leaders India',
-    'Chief Customer Officer',
-    'CX Community India',
-    'The Executive Assembly',
-    'Vivek Sheth',
-    'Founding CX Leaders',
-  ],
-  authors: [{ name: 'The Executive Assembly' }],
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://the-cx-assembly.web.app'),
-  openGraph: {
-    title: 'The CX Assembly — Built by CX Leaders. For CX Leaders.',
-    description: defaultSettings.metaDescription,
-    url: 'https://the-cx-assembly.web.app',
-    siteName: 'The CX Assembly',
-    images: [
-      {
-        url: '/brand/logo.png',
-        width: 800,
-        height: 800,
-        alt: 'The CX Assembly',
-      },
+/** Site-wide defaults; the home page uses them as-is. Title and description are editable under Settings. */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const description = settings.metaDescription || defaultSettings.metaDescription;
+  const homeTitle = settings.siteTitle || defaultSettings.siteTitle;
+
+  return {
+    ...pageMetadata({ description, path: '/', shareTitle: homeTitle }),
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: homeTitle,
+      template: `%s | ${SITE_NAME}`,
+    },
+    applicationName: SITE_NAME,
+    keywords: [
+      'CX Assembly',
+      'Customer Experience Leaders India',
+      'Chief Customer Officer',
+      'CX Community India',
+      'The Executive Assembly',
+      'Vivek Sheth',
+      'Founding CX Leaders',
     ],
-    locale: 'en_IN',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'The CX Assembly — Built by CX Leaders. For CX Leaders.',
-    description: defaultSettings.metaDescription,
-    images: ['/brand/logo.png'],
-  },
-  icons: {
-    icon: '/brand/logo.png',
-    apple: '/brand/logo.png',
-  },
-};
+    authors: [{ name: 'The Executive Assembly' }],
+    icons: {
+      icon: '/brand/logo.png',
+      apple: '/brand/logo.png',
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: '#FAFAF4',
@@ -61,19 +49,20 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await getSiteSettings();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'The CX Assembly',
     alternateName: 'CX Assembly',
-    url: 'https://the-cx-assembly.web.app',
-    logo: 'https://the-cx-assembly.web.app/brand/logo.png',
-    description: defaultSettings.metaDescription,
+    url: SITE_URL,
+    logo: `${SITE_URL}/brand/logo.png`,
+    description: settings.metaDescription || defaultSettings.metaDescription,
     founder: {
       '@type': 'Person',
       name: 'Vivek Sheth',
@@ -82,7 +71,8 @@ export default function RootLayout({
       '@type': 'Organization',
       name: 'The Executive Assembly',
     },
-    sameAs: ['https://www.linkedin.com/company/the-cx-assembly'],
+    sameAs: [settings.linkedinUrl || defaultSettings.linkedinUrl],
+    ...(settings.contactEmail && { email: settings.contactEmail }),
   };
 
   return (

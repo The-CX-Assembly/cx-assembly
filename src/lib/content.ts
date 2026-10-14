@@ -139,7 +139,8 @@ export async function getVoices(siteId: string = DEFAULT_SITE_ID): Promise<Commu
   }
 }
 
-export async function getSiteSettings(siteId: string = DEFAULT_SITE_ID): Promise<SiteSettings> {
+// Cached per request: the root layout's metadata, its JSON-LD and the home page all read it.
+export const getSiteSettings = cache(async (siteId: string = DEFAULT_SITE_ID): Promise<SiteSettings> => {
   const defaults = siteId === DEFAULT_SITE_ID ? defaultSettings : emptySettings;
   const db = getAdminDb();
   if (!db) return defaults;
@@ -152,4 +153,4 @@ export async function getSiteSettings(siteId: string = DEFAULT_SITE_ID): Promise
     console.warn('Error reading settings from Firestore, using defaultSettings:', error);
     return defaults;
   }
-}
+});

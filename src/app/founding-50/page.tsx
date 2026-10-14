@@ -4,12 +4,13 @@ import LeaderCard from '@/components/LeaderCard';
 import { Accent, Eyebrow } from '@/components/Type';
 import { getSiteContent, getLeaders } from '@/lib/content';
 import { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'The Founding 50 Leaders | The CX Assembly',
-  description:
-    'Meet the 50 founding customer experience leaders shaping India’s peer-led CX community.',
-};
+export const metadata: Metadata = pageMetadata({
+  title: 'The Founding 50 Leaders',
+  description: 'Meet the 50 founding customer experience leaders shaping India’s peer-led CX community.',
+  path: '/founding-50',
+});
 
 export const revalidate = 60;
 

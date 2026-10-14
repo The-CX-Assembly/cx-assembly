@@ -5,12 +5,14 @@ import { Eyebrow } from '@/components/Type';
 import { ArrowRight } from '@/components/Icons';
 import { getVoices } from '@/lib/content';
 import { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Community Voices | The CX Assembly',
+export const metadata: Metadata = pageMetadata({
+  title: 'Community Voices',
   description:
     'Unfiltered perspectives, lessons, and candid reflections from senior customer experience heads across India.',
-};
+  path: '/community-voices',
+});
 
 export const revalidate = 60;
 

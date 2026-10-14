@@ -2,7 +2,14 @@ import { getAdminSession } from '@/lib/auth-session';
 import { getAdminSiteContext } from '@/lib/admin-site';
 import { buildShellLeads, getShellSummary } from '@/lib/admin-stats';
 import { canAccess } from '@/lib/admin-sections';
+import type { Metadata } from 'next';
 import AdminShell from '@/components/admin/AdminShell';
+
+// The console is private: keep every admin page out of search results.
+export const metadata: Metadata = {
+  title: 'Admin console',
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({
   children,

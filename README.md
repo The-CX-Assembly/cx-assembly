@@ -69,6 +69,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## 🔎 SEO & Social Sharing
+
+- **Site address**: `NEXT_PUBLIC_SITE_URL` in `apphosting.yaml` drives canonical links, the sitemap, `robots.txt` and link previews. It's set to the App Hosting URL; change it when a custom domain (e.g. `thecxassembly.com`) is connected, or previews will point at the old address.
+- **Home page title & description** come from **Settings** in the admin (SEO title / meta description).
+- **Other pages** set theirs with `pageMetadata()` in `src/lib/seo.ts`, which also adds the canonical URL and Open Graph / X (Twitter) previews.
+- **Preview image**: `public/brand/og-image.png` (1200×630). Replace the file to change what LinkedIn, WhatsApp, X and Slack show.
+- **Admin** pages are `noindex` and disallowed in `robots.txt`, along with `/api/`.
+- After deploying, re-scrape a URL in the [LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/) or [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) to refresh cached previews.
+
+---
+
 ## 🌐 Managing Multiple Websites
 
 The admin dashboard is a shared hub. This app renders **The CX Assembly** (site id `cx-assembly`). Any other website (its own codebase, its own design) can use the same dashboard for its leads and content.
