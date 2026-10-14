@@ -1408,3 +1408,68 @@ button.link-arrow { font-family: inherit; }
 }
 
 .admin-nav-item:hover { color: #FFFFFF; background: rgba(255, 255, 255, 0.1); }
+
+/* Admin Dashboard Responsive & Interactive Utilities */
+@media (max-width: 960px) {
+  .admin-desktop-nav {
+    display: none !important;
+  }
+  .admin-mobile-toggle {
+    display: block !important;
+  }
+  .admin-user-pill span {
+    display: none !important;
+  }
+}
+
+.admin-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-card:hover {
+  box-shadow: 0 8px 24px rgba(12, 35, 57, 0.08);
+  border-color: #CBD5E1;
+}
+
+.admin-card-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10B981;
+  position: relative;
+  display: inline-block;
+}
+
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.4);
+  animation: pulseAnimation 2s infinite;
+}
+
+@keyframes pulseAnimation {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+
+.admin-table-row {
+  transition: background-color 0.15s ease;
+}
+
+.admin-table-row:hover {
+  background-color: #F8FAFC !important;
+}
