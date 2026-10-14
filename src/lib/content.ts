@@ -139,26 +139,6 @@ export async function getVoices(siteId: string = DEFAULT_SITE_ID): Promise<Commu
   }
 }
 
-/** Every voice, drafts included, for the admin editor. */
-export async function getAllVoicesAdmin(siteId: string): Promise<CommunityVoice[]> {
-  const db = getAdminDb();
-  if (!db) return sampleFor(siteId, sampleVoices);
-
-  try {
-    const snapshot = await siteCollection(db, siteId, 'voices').orderBy('order', 'asc').get();
-    if (snapshot.empty) return sampleFor(siteId, sampleVoices);
-
-    const voices: CommunityVoice[] = [];
-    snapshot.forEach((doc) => {
-      voices.push({ id: doc.id, ...(doc.data() as Omit<CommunityVoice, 'id'>) });
-    });
-    return voices;
-  } catch (error) {
-    console.warn('Error fetching all voices:', error);
-    return sampleFor(siteId, sampleVoices);
-  }
-}
-
 export async function getSiteSettings(siteId: string = DEFAULT_SITE_ID): Promise<SiteSettings> {
   const defaults = siteId === DEFAULT_SITE_ID ? defaultSettings : emptySettings;
   const db = getAdminDb();

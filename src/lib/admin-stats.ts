@@ -4,7 +4,7 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getAdminDb } from './firebase-admin';
 import { siteCollection } from './sites';
 import { DEFAULT_SITE_ID, siteIdOf } from './site-constants';
-import { sampleLeaders, sampleVoices } from './default-content';
+import { sampleLeaders } from './default-content';
 import { InterestType, Lead, LeadStatus, Leader } from '@/types';
 
 // The community is India-based, so day/month buckets follow IST rather than
@@ -67,68 +67,40 @@ export const getAllLeads = cache(async (): Promise<Lead[]> => {
   }
 });
 
-export const getVoiceCounts = cache(async (siteId: string): Promise<{ total: number; published: number }> => {
-  const db = getAdminDb();
-  const sampleCount = siteId === DEFAULT_SITE_ID ? sampleVoices.length : 0;
-  const fallback = { total: sampleCount, published: sampleCount };
-  if (!db) return fallback;
-
-  try {
-    const snap = await siteCollection(db, siteId, 'voices').get();
-    if (snap.empty) return fallback;
-    let published = 0;
-    snap.forEach((doc) => {
-      if (doc.data().published) published += 1;
-    });
-    return { total: snap.size, published };
-  } catch (e) {
-    console.warn('Could not count voices:', e);
-    return fallback;
-  }
-});
-
 export interface ShellSummary {
   newLeads: Lead[];
-  recentLeads: Lead[];
   leaderCount: number;
-  voiceCount: number;
 }
 
 /**
- * Just what the admin shell needs (badges + recent lists), using count and
- * limit queries instead of loading whole collections on every admin page.
- * Leads come from every website, since the inbox is shared; leader and voice
- * counts are for the website being managed (`siteId`).
+ * Just what the admin shell needs (badges + new-lead notifications), using
+ * count and equality queries instead of loading whole collections on every admin page.
+ * Leads come from every website, since the inbox is shared; the leader count
+ * is for the website being managed (`siteId`).
  */
 export const getShellSummary = cache(async (siteId: string | null): Promise<ShellSummary> => {
   // Empty collections fall back to the sample content the original site shows.
   const usesSamples = siteId === DEFAULT_SITE_ID;
   const fallback = {
     newLeads: [],
-    recentLeads: [],
     leaderCount: usesSamples ? sampleLeaders.length : 0,
-    voiceCount: usesSamples ? sampleVoices.length : 0,
   };
   const db = getAdminDb();
   if (!db) return fallback;
 
-  const countOf = async (name: 'leaders' | 'voices') =>
-    siteId ? (await siteCollection(db, siteId, name).count().get()).data().count : 0;
+  const countLeaders = async () =>
+    siteId ? (await siteCollection(db, siteId, 'leaders').count().get()).data().count : 0;
 
   try {
-    const [newSnap, recentSnap, leaderCount, voiceCount] = await Promise.all([
+    const [newSnap, leaderCount] = await Promise.all([
       // Equality-only filter: needs no composite index, and the 'new' set stays small.
       db.collection('leads').where('status', '==', 'new').get(),
-      db.collection('leads').orderBy('createdAt', 'desc').limit(6).get(),
-      countOf('leaders'),
-      countOf('voices'),
+      countLeaders(),
     ]);
     const toLead = (doc: QueryDocumentSnapshot) => ({ id: doc.id, ...(doc.data() as Omit<Lead, 'id'>) });
     return {
       newLeads: newSnap.docs.map(toLead).sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
-      recentLeads: recentSnap.docs.map(toLead),
       leaderCount: leaderCount || fallback.leaderCount,
-      voiceCount: voiceCount || fallback.voiceCount,
     };
   } catch (e) {
     console.warn('Could not load admin shell summary:', e);

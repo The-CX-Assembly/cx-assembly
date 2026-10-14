@@ -6,7 +6,7 @@ import { getAdminBucket, getAdminDb } from '@/lib/firebase-admin';
 import { authorize } from '@/lib/auth-session';
 import { getSite, siteCollection } from '@/lib/sites';
 import { DEFAULT_SITE_ID } from '@/lib/site-constants';
-import { Leader, CommunityVoice, SiteSettings, LeadStatus, ContentFieldValue } from '@/types';
+import { Leader, SiteSettings, LeadStatus, ContentFieldValue } from '@/types';
 
 const NO_ACCESS = 'You don’t have access to this section.';
 
@@ -184,45 +184,6 @@ export async function reorderLeaders(siteId: string, orderedIds: string[]) {
   } catch (error) {
     console.error('Error reordering leaders:', error);
     return { success: false, error: 'Failed to reorder leaders' };
-  }
-}
-
-export async function saveVoice(siteId: string, voice: Omit<CommunityVoice, 'id'> & { id?: string }) {
-  if (!(await authorize('voices'))) return { success: false, error: NO_ACCESS };
-  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
-  const db = getAdminDb();
-  if (!db) return { success: false, error: 'Database not connected' };
-
-  try {
-    const { id, ...data } = voice;
-    const voices = siteCollection(db, siteId, 'voices');
-    if (id && !id.startsWith('temp-')) {
-      await voices.doc(id).set(data, { merge: true });
-    } else {
-      await voices.add(data);
-    }
-
-    revalidateSite(siteId, '/admin/voices', ['/community-voices']);
-    return { success: true };
-  } catch (error) {
-    console.error('Error saving community voice:', error);
-    return { success: false, error: 'Failed to save voice' };
-  }
-}
-
-export async function deleteVoice(siteId: string, voiceId: string) {
-  if (!(await authorize('voices'))) return { success: false, error: NO_ACCESS };
-  if (!(await knownSite(siteId))) return { success: false, error: 'Website not found.' };
-  const db = getAdminDb();
-  if (!db) return { success: false, error: 'Database not connected' };
-
-  try {
-    await siteCollection(db, siteId, 'voices').doc(voiceId).delete();
-    revalidateSite(siteId, '/admin/voices', ['/community-voices']);
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting voice:', error);
-    return { success: false, error: 'Failed to delete voice' };
   }
 }
 

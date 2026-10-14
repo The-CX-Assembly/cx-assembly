@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { requireSection } from '@/lib/auth-session';
 import { getAdminSiteContext } from '@/lib/admin-site';
 import { getAllLeadersAdmin } from '@/lib/content';
-import { buildDashboard, getAllLeads, getVoiceCounts, greeting, todayLabel } from '@/lib/admin-stats';
+import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/lib/admin-stats';
 import { siteIdOf } from '@/lib/site-constants';
 import RecentLeadsTable from '@/components/admin/RecentLeadsTable';
 import ActivityStrip from '@/components/admin/dashboard/ActivityStrip';
@@ -19,12 +19,10 @@ export default async function AdminDashboardPage() {
   const session = await requireSection('dashboard');
   const { site } = await getAdminSiteContext();
   const hasLeaders = Boolean(site?.modules.includes('leaders'));
-  const hasVoices = Boolean(site?.modules.includes('voices'));
 
-  const [allLeads, leaders, voices] = await Promise.all([
+  const [allLeads, leaders] = await Promise.all([
     getAllLeads(),
     hasLeaders && site ? getAllLeadersAdmin(site.id) : Promise.resolve([]),
-    hasVoices && site ? getVoiceCounts(site.id) : Promise.resolve({ total: 0, published: 0 }),
   ]);
   // A website shows its own leads; "All websites" shows every lead.
   const leads = site ? allLeads.filter((l) => siteIdOf(l) === site.id) : allLeads;
@@ -68,25 +66,15 @@ export default async function AdminDashboardPage() {
           colorTo: '#FFB3B1',
           href: '/admin/leads',
         },
-    hasVoices
-      ? {
-          title: 'Voices',
-          caption: 'published',
-          value: voices.total,
-          percent: pct(voices.published, voices.total),
-          color: '#FFB547',
-          colorTo: '#FFE2AE',
-          href: '/admin/voices',
-        }
-      : {
-          title: 'Partners',
-          caption: 'of all leads',
-          value: partners,
-          percent: pct(partners, total),
-          color: '#FFB547',
-          colorTo: '#FFE2AE',
-          href: '/admin/leads',
-        },
+    {
+      title: 'Partners',
+      caption: 'of all leads',
+      value: partners,
+      percent: pct(partners, total),
+      color: '#FFB547',
+      colorTo: '#FFE2AE',
+      href: '/admin/leads',
+    },
     {
       title: 'Approved',
       caption: 'approval rate',

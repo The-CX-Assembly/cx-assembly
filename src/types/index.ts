@@ -140,8 +140,8 @@ export interface SiteContent {
   privacyPolicy: string;
 }
 
-/** Optional per-site features: the original site's speaker roster and testimonials. */
-export type SiteModule = 'leaders' | 'voices';
+/** Optional per-site features: the original site's speaker roster. */
+export type SiteModule = 'leaders';
 
 /** A website managed from this dashboard. */
 export interface Site {

@@ -40,7 +40,7 @@ const detailsSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
   url: z.string().trim().url('Enter the full website URL, e.g. https://example.com').max(200).or(z.literal('')),
   allowedOrigins: z.array(origin).max(20, 'At most 20 origins'),
-  modules: z.array(z.enum(['leaders', 'voices'])),
+  modules: z.array(z.enum(['leaders'])),
 });
 
 const createSchema = detailsSchema.extend({

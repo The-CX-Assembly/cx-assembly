@@ -17,11 +17,11 @@ const BUILT_IN_SITE: Site = {
   name: 'The CX Assembly',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://the-cx-assembly.web.app',
   allowedOrigins: [],
-  modules: ['leaders', 'voices'],
+  modules: ['leaders'],
   builtIn: true,
 };
 
-const MODULES: SiteModule[] = ['leaders', 'voices'];
+const MODULES: SiteModule[] = ['leaders'];
 
 /** What's stored in sites/{id}. The key hash never leaves the server. */
 export interface StoredSite {
