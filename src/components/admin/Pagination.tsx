@@ -1,7 +1,7 @@
 'use client';
 
 /** Page numbers to show: always first/last and the current page's neighbours. */
-function pageList(page: number, pageCount: number): (number | 'gap')[] {
+export function pageList(page: number, pageCount: number): (number | 'gap')[] {
   const pages = new Set([1, pageCount, page - 1, page, page + 1].filter((p) => p >= 1 && p <= pageCount));
   const sorted = [...pages].sort((a, b) => a - b);
   return sorted.flatMap((p, i) => (i > 0 && p - sorted[i - 1] > 1 ? (['gap', p] as const) : [p]));
