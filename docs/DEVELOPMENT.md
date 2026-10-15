@@ -59,4 +59,5 @@ Admin: http://localhost:3000/admin/login.
 
 - **Pages reload over and over in dev**: the dev server got stuck (e.g. after a merge conflict). Stop it and run `npm run dev` again.
 - **Type errors mentioning `.next/…/validator.ts`** after moving pages: stale generated types. `npm run typecheck` regenerates them; or delete `.next/types` and `.next/dev/types`.
+- **`unable to get local issuer certificate`** in browser tests against a deployed site: your network re-signs HTTPS (common on office networks) and Node doesn't trust it. Run with `NODE_OPTIONS=--use-system-ca` to use the Windows/macOS certificate store.
 - **Admin pages are slow locally in production mode** (`npm start` without credentials): Firebase looks for Google Cloud credentials and times out on each call. Use `npm run dev`, or set up credentials as above.
