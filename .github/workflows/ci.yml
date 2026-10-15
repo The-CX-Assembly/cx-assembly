@@ -16,8 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  checks:
-    name: Lint, typecheck & unit tests
+  lint:
+    name: lint # lint, typecheck & unit tests; must match the required check in the rulesets
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,8 +31,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
-  e2e:
-    name: Build & browser tests
+  build:
+    name: build # production build & browser tests; must match the required check in the rulesets
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
