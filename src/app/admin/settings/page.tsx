@@ -3,6 +3,9 @@ import { getAdminSiteContext } from '@/features/sites/admin-site';
 import { getSiteSettings } from '@/features/content/server';
 import SettingsManager from '@/features/content/components/SettingsManager';
 import ChooseSite from '@/features/sites/components/ChooseSite';
+import { PageHeader } from '@/components/admin/ui';
+import { IconSettings } from '@/components/admin/AdminIcons';
+import ui from '@/components/admin/ui.module.css';
 
 export default async function AdminSettingsPage() {
   await requireSection('settings');
@@ -17,17 +20,14 @@ export default async function AdminSettingsPage() {
   const settings = await getSiteSettings(site.id);
 
   return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
-          {site.name} Settings
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem' }}>
-          Configure global SEO metadata, social links, contact email, and platform credentials.
-        </p>
-      </div>
-
-      <SettingsManager key={site.id} siteId={site.id} initialSettings={settings} />
+    <div className={ui.page}>
+      <PageHeader
+        eyebrow={site.name}
+        icon={<IconSettings size={14} />}
+        title="Settings"
+        description="How the website appears in Google and link previews, plus its contact details and credibility line."
+      />
+      <SettingsManager key={site.id} siteId={site.id} siteUrl={site.url} initialSettings={settings} />
     </div>
   );
 }
