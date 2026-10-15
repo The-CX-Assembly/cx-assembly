@@ -98,7 +98,7 @@ export async function siteExists(siteId: unknown): Promise<boolean> {
 export function siteCollection(
   db: Firestore,
   siteId: string,
-  name: 'siteContent' | 'leaders' | 'voices' | 'settings',
+  name: 'siteContent' | 'leaders' | 'voices' | 'settings' | 'videos' | 'resources',
 ): CollectionReference {
   return siteId === DEFAULT_SITE_ID
     ? db.collection(name)

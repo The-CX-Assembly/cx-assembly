@@ -48,6 +48,16 @@ export const PAGES = {
       'Unfiltered perspectives, lessons, and candid reflections from senior customer experience heads across India.',
     path: '/community-voices',
   },
+  videos: {
+    title: 'Videos',
+    description: 'Conversations, interviews and talks from India’s community of customer experience leaders.',
+    path: '/videos',
+  },
+  resources: {
+    title: 'Resources',
+    description: 'Reports, playbooks and guides for customer experience leaders, from The CX Assembly.',
+    path: '/resources',
+  },
   privacyPolicy: {
     title: 'Privacy Policy',
     description: 'Privacy Policy and data protection terms for The CX Assembly.',

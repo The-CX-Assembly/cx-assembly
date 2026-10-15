@@ -13,6 +13,7 @@ test('every admin page renders', async ({ page }) => {
     ['/admin', /Good (morning|afternoon|evening)/],
     ['/admin/leads', /Leads/],
     ['/admin/content', /Content/],
+    ['/admin/media', /Videos & PDFs/],
     ['/admin/settings', /Settings/],
     ['/admin/speakers', /CMO Speakers/],
     ['/admin/sites', /Websites/],
@@ -94,4 +95,12 @@ test('content editor shows every section and tracks unsaved changes', async ({ p
   await expect(page.getByText('Unsaved changes')).toBeVisible();
   await page.getByRole('button', { name: 'Discard' }).click();
   await expect(page.getByText('Unsaved changes')).toHaveCount(0);
+});
+
+test('videos & PDFs start switched off', async ({ page }) => {
+  await page.goto('/admin/media');
+  await page.getByRole('tab', { name: /Where they appear/ }).click();
+  for (const name of ['Video section on the home page', 'Videos page', 'Resources page']) {
+    await expect(page.getByRole('switch', { name })).toHaveAttribute('aria-checked', 'false');
+  }
 });

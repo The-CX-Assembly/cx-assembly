@@ -22,6 +22,7 @@ src/
     leads/                    Join form, campaign tracking, saving leads, the inbox
     speakers/                 CMO Speakers roster (public cards + admin editor)
     content/                  Page copy, site settings, content editors, defaults
+    media/                    Videos (links + uploads) and form-gated PDFs: admin, public grid/cards, downloads
     sites/                    Multi-site hub: website registry, API keys, switcher, public API auth
     dashboard/                Admin dashboard stats and charts (Lead Sources, trends…)
     auth/                     Admin sign-in, session cookies, section permissions
@@ -60,6 +61,9 @@ Rule of thumb: a page in `src/app` imports from `features/*`; features may impor
 | `leads` | Every form submission, from every website | `siteId` says which site; leads saved before multi-site support have none and belong to `cx-assembly`. `source` holds the button, pages, referrer and UTM tags. |
 | `leaders` | CX Assembly's **CMO Speakers** | Called "speakers" everywhere in code. The collection keeps its original name, so no data migration was needed. |
 | `voices` | Community Voices quotes | No admin editor; edit in the Firebase console. |
+| `videos` | Videos (YouTube/Vimeo links or uploaded files) | `published` and `showOnHome` both default off. |
+| `resources` | Downloadable PDFs | `storagePath` points into private Storage; `downloads` counts form-gated downloads. |
+| `settings/media` | Master switches: home-page video section, `/videos`, `/resources` | All off until switched on under **Videos & PDFs → Where they appear**. |
 | `siteContent/{section}` | CX Assembly page copy | Typed sections (hero, whyWeExist…), edited in Content Editor. |
 | `settings/general` | CX Assembly SEO title, description, links | Edited in Settings. |
 | `sites/{siteId}` | Registered websites | Name, URL, allowed origins, features, **hashed** API key. |
@@ -89,6 +93,14 @@ All server access goes through the Admin SDK (`src/server/firebase-admin.ts`), w
 - The **website switcher** (admin header) stores the selected site in a cookie (`features/sites/admin-site.ts`). Content, Settings, Speakers and the Dashboard follow it; **All websites** combines leads and stats.
 - Server actions receive the `siteId` explicitly and check it exists (`siteExists`), so a save always goes to the site the editor was opened for.
 - CX Assembly (`DEFAULT_SITE_ID = 'cx-assembly'`) keeps its original top-level collections; other sites live under `sites/{siteId}/…` (`siteCollection()` picks the right one).
+
+## Videos & PDFs
+
+- **Nothing is public by default.** Each video/PDF has a *Live* switch, and the home-page video section, `/videos` and `/resources` each have a master switch (`settings/media`). Pages that are switched off return 404 and are left out of the sitemap.
+- **Uploads go straight to Cloud Storage.** `startUpload` opens a resumable upload session for one object (tied to the admin page's origin); the browser PUTs the file there (`features/media/upload.ts`), then `finishUpload` checks type and size. This avoids App Hosting's 32 MB request limit (videos up to 500 MB, PDFs up to 50 MB).
+- **Storage layout:** `uploads/**` is public (photos, videos, thumbnails); everything else, including `private/resources/**` (PDFs), is server-only (`storage.rules`).
+- **PDFs are always form-gated.** `requestResource` saves the visitor as a lead (button `pdf-download`, the PDF in `extra`, plus campaign tags), then returns a link to `/api/resources/:id/download` signed for that PDF and valid 15 minutes; the route streams the private file and counts the download.
+- **Players are click-to-play:** only a thumbnail loads until a visitor presses play (YouTube uses its privacy-enhanced domain).
 
 ## SEO
 

@@ -1,7 +1,12 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/features/seo/metadata';
+import { getMediaSettings } from '@/features/media/server';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Rebuilt at most once an hour, so switching a page on in the admin shows up here.
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const media = await getMediaSettings();
   const baseUrl = SITE_URL;
 
   return [
@@ -29,5 +34,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    // Only listed while switched on (Videos & PDFs → Where they appear).
+    ...(media.videosPage
+      ? [{ url: `${baseUrl}/videos`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 }]
+      : []),
+    ...(media.resourcesPage
+      ? [{ url: `${baseUrl}/resources`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 }]
+      : []),
   ];
 }

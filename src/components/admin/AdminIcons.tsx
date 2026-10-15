@@ -257,3 +257,16 @@ export const IconSparkle = (p: IconProps) => (
     <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />
   </Icon>
 );
+
+export const IconVideo = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="2" y="5" width="15" height="14" rx="2" />
+    <path d="m17 10 5-3v10l-5-3" />
+  </Icon>
+);
+
+export const IconPlay = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none" />
+  </Icon>
+);

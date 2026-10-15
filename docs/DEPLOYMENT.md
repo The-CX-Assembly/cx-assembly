@@ -123,5 +123,5 @@ On `production`, add **Required reviewers: the owner**.
 
 **Branch rules** (Settings → Rules → Rulesets):
 
-- **`main`**: require a pull request with **1 approval** and **Code Owners review**. Required status checks: *Lint, typecheck & unit tests* and *Build & browser tests*. Block force pushes and deletion. Add the owner to the **bypass list**, so the owner can merge their own PRs (GitHub doesn't let authors approve their own).
+- **`main`**: require a pull request with **1 approval** and **Code Owners review**. Required status checks: `lint` and `build` (the two CI jobs; type them exactly). Block force pushes and deletion. Add the owner to the **bypass list**, so the owner can merge their own PRs (GitHub doesn't let authors approve their own).
 - **`staging`**: require a pull request and the same two status checks (no approval needed). Block force pushes and deletion.
