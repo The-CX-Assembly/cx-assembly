@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { IS_STAGING } from '@/lib/env';
 
 // Tag set modelled on thecmoassembly.com (All in One SEO): canonical, Open Graph
 // incl. secure_url, large X card, max-image-preview, sized icons, and a
@@ -68,8 +69,8 @@ export function pageMetadata({ title, description, path, shareTitle }: PageSeo &
     ...(title && { title }),
     description,
     alternates: { canonical: path },
-    // Lets Google show the large preview image in results.
-    robots: { 'max-image-preview': 'large' },
+    // Lets Google show the large preview image in results; staging is never indexed.
+    robots: IS_STAGING ? { index: false, follow: false } : { 'max-image-preview': 'large' },
     openGraph: {
       title: preview,
       description,

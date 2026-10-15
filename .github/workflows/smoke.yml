@@ -1,0 +1,35 @@
+name: Smoke test a deployed site
+
+# Run after a rollout (Actions → "Smoke test a deployed site" → Run workflow).
+# Read-only checks: pages load, every Join button is tagged, SEO tags, and the
+# API rejects bad keys. It never submits a form, so it creates no leads.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which site to check
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    env:
+      CI: true
+      # Set per GitHub Environment (Settings → Environments → <env> → Variables).
+      PLAYWRIGHT_BASE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --grep @smoke

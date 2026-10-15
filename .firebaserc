@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "the-cx-assembly"
+    "default": "the-cx-assembly",
+    "production": "the-cx-assembly",
+    "staging": "the-cx-assembly-staging"
   }
 }

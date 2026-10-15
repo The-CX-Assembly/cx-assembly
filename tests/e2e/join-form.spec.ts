@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { openJoinForm } from './helpers';
 
-test.describe('Join CTAs record where each lead came from', () => {
+test.describe('Join CTAs record where each lead came from @smoke', () => {
   const desktopCtas: [path: string, cta: string][] = [
     ['/', 'navbar'],
     ['/', 'hero'],
@@ -35,7 +35,7 @@ test.describe('Join CTAs record where each lead came from', () => {
   });
 });
 
-test('campaign tags survive browsing to another page', async ({ page }) => {
+test('campaign tags survive browsing to another page @smoke', async ({ page }) => {
   await page.goto('/?utm_source=linkedin&utm_medium=social&utm_campaign=e2e-launch');
   await page.click('a[href="/founding-50"]');
   await page.waitForURL('**/founding-50');

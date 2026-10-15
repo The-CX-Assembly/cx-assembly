@@ -2,15 +2,16 @@
 
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
+import { IS_STAGING } from '@/lib/env';
 
 /**
  * Google Tag Manager for the public website (thecmoassembly.com uses GTM too).
  * Set NEXT_PUBLIC_GTM_ID to the container id (GTM-XXXXXXX) to turn it on.
- * The private admin console is never tracked.
+ * The private admin console and the staging site are never tracked.
  */
 export default function GoogleTagManager({ id }: { id?: string }) {
   const pathname = usePathname();
-  if (!id || !/^GTM-[A-Z0-9]+$/.test(id) || pathname.startsWith('/admin')) return null;
+  if (IS_STAGING || !id || !/^GTM-[A-Z0-9]+$/.test(id) || pathname.startsWith('/admin')) return null;
 
   return (
     <>

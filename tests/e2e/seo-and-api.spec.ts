@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('public pages have titles, canonical links and share previews', async ({ page }) => {
+test('public pages have titles, canonical links and share previews @smoke', async ({ page }) => {
   const pages: [path: string, title: RegExp, ogType: string][] = [
     ['/', /The CX Assembly/, 'website'],
     ['/founding-50', /^The Founding 50 Leaders - The CX Assembly$/, 'article'],
@@ -32,7 +32,7 @@ test('admin pages are not indexable', async ({ page }) => {
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
 });
 
-test('the website API rejects requests without a valid key', async ({ request }) => {
+test('the website API rejects requests without a valid key @smoke', async ({ request }) => {
   const noKey = await request.post('/api/v1/leads', { data: { fullName: 'x', email: 'x@y.com' } });
   expect(noKey.status()).toBe(401);
   const badKey = await request.get('/api/v1/content', { headers: { 'x-api-key': 'cxa_wrong' } });

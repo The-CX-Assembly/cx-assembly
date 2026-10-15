@@ -8,6 +8,7 @@ import { JoinModalProvider } from '@/features/leads/components/JoinModal';
 import GoogleTagManager from '@/features/seo/components/GoogleTagManager';
 import JsonLd from '@/features/seo/components/JsonLd';
 import ScrollReset from '@/components/site/ScrollReset';
+import EnvironmentBanner from '@/components/EnvironmentBanner';
 
 const monaSans = Mona_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -82,6 +83,7 @@ export default async function RootLayout({
         <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
         <ScrollReset />
         <JoinModalProvider>{children}</JoinModalProvider>
+        <EnvironmentBanner />
       </body>
     </html>
   );

@@ -1,0 +1,67 @@
+name: CI
+
+# Every push and every pull request into staging or main. Branch protection
+# requires both jobs to pass before a PR can be merged.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [staging, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  e2e:
+    name: Build & browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+      # Test-only values: the app runs against a throwaway Firestore emulator
+      # ("demo-" projects never reach real Firebase), not staging or production.
+      FIREBASE_PROJECT_ID: demo-cx-assembly
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-cx-assembly
+      ADMIN_SESSION_SECRET: ci-only-session-secret-not-used-anywhere-else
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # The Firestore emulator needs Java.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e:ci
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

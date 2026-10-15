@@ -52,7 +52,14 @@ export function getAdminApp(): App | null {
       return adminApp;
     }
 
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'the-cx-assembly';
+    // App Hosting / Cloud Run set GOOGLE_CLOUD_PROJECT, so staging talks to the
+    // staging project even if FIREBASE_PROJECT_ID is missing.
+    const projectId =
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.GOOGLE_CLOUD_PROJECT ||
+      process.env.GCLOUD_PROJECT ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+      'the-cx-assembly';
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
@@ -61,7 +68,7 @@ export function getAdminApp(): App | null {
     adminApp = initializeApp({
       ...(clientEmail && privateKey ? { credential: cert({ projectId, clientEmail, privateKey }) } : {}),
       projectId,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'the-cx-assembly.firebasestorage.app',
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
     });
     return adminApp;
   } catch (error) {

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "check": "npm run lint && npm run typecheck && npm test",
     "seed": "tsx scripts/seed.ts",
-    "test:e2e:ci": "firebase emulators:exec --only firestore --project demo-cx-assembly \"playwright test\""
+    "test:e2e:ci": "npx --yes firebase-tools@15.34.0 emulators:exec --only firestore --project demo-cx-assembly \"playwright test\""
   },
   "dependencies": {
     "firebase": "^13.0.0",
