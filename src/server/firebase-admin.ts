@@ -83,8 +83,10 @@ export function getAdminDb(): Firestore | null {
   const app = getAdminApp();
   if (!app) return null;
   try {
-    // REST transport avoids the slow gRPC channel setup on cold-started serverless instances.
-    adminDb = initializeFirestore(app, { preferRest: true });
+    // REST transport avoids the slow gRPC channel setup on cold-started serverless
+    // instances. Not with the emulator (tests): REST still looks up Google Cloud
+    // credentials there, which hangs on machines that have none.
+    adminDb = initializeFirestore(app, process.env.FIRESTORE_EMULATOR_HOST ? {} : { preferRest: true });
     return adminDb;
   } catch (error) {
     console.warn('Failed to get Firestore admin instance:', error);

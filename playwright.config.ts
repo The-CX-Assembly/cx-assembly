@@ -30,7 +30,8 @@ export default defineConfig({
   webServer: REMOTE
     ? undefined
     : {
-        command: CI ? 'npm run start' : 'npm run dev',
+        // In CI the server log is kept for the failure summary (see ci.yml).
+        command: CI ? 'npm run start > server.log 2>&1' : 'npm run dev',
         url: `http://localhost:${PORT}`,
         reuseExistingServer: !CI,
         timeout: 180_000,
