@@ -23,6 +23,8 @@ import { getSpeakers } from '@/features/speakers/server';
 import { pageGraph } from '@/features/seo/metadata';
 import { defaultSettings } from '@/features/content/defaults';
 import JsonLd from '@/features/seo/components/JsonLd';
+import { getMediaSettings, getPublishedVideos } from '@/features/media/server';
+import VideoGrid from '@/features/media/components/VideoGrid';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
 
@@ -44,7 +46,13 @@ function splitAtColon(text: string): [string, string] {
 }
 
 export default async function HomePage() {
-  const [content, speakers, settings] = await Promise.all([getSiteContent(), getSpeakers(), getSiteSettings()]);
+  const [content, speakers, settings, media, homeVideos] = await Promise.all([
+    getSiteContent(),
+    getSpeakers(),
+    getSiteSettings(),
+    getMediaSettings(),
+    getPublishedVideos(undefined, { home: true }),
+  ]);
   const { hero, whyWeExist, philosophy, forLeaders, forPartners, aboutUs } = content;
 
   const [principleLead, principleBody] = splitAtColon(forPartners.principle);
@@ -300,6 +308,34 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── VIDEOS (only when switched on in Videos & PDFs) ── */}
+        {media.videosOnHome && homeVideos.length > 0 && (
+          <section id="videos" className="section">
+            <div className="wrap">
+              <div className="section-head">
+                <div>
+                  <Eyebrow>Watch</Eyebrow>
+                  <h2 className="h-xl reveal" style={{ marginTop: 28 }}>
+                    {media.videosTitle}
+                  </h2>
+                  {media.videosIntro && (
+                    <p className="lede reveal" style={{ marginTop: 20, maxWidth: '52ch' }}>
+                      {media.videosIntro}
+                    </p>
+                  )}
+                </div>
+                {media.videosPage && (
+                  <Link href="/videos" className="link-arrow">
+                    All videos
+                    <ArrowRight size={16} />
+                  </Link>
+                )}
+              </div>
+              <VideoGrid videos={homeVideos.slice(0, 3)} />
+            </div>
+          </section>
+        )}
 
         {/* ── 05 FOR PARTNERS ─────────────────────────────── */}
         <section id="for-partners" className="section section--ink" style={{ overflow: 'hidden' }}>

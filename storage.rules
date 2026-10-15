@@ -1,5 +1,7 @@
 rules_version = '2';
 
+// All uploads go through the server (Admin SDK), which bypasses these rules.
+// These rules only decide what browsers may read directly.
 service firebase.storage {
   match /b/{bucket}/o {
     function isAdmin() {
@@ -9,7 +11,7 @@ service firebase.storage {
       );
     }
 
-    // Public read for uploaded assets (speaker photos, logos)
+    // Public assets: speaker photos, uploaded videos, thumbnails.
     match /uploads/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin()
@@ -17,9 +19,10 @@ service firebase.storage {
                    && request.resource.contentType.matches('image/.*');
     }
 
+    // Everything else is private, including gated PDFs under private/:
+    // visitors only get them through /api/resources/:id/download after the form.
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if false;
     }
   }
 }
