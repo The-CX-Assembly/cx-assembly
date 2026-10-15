@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { selectAdminSite } from '@/features/sites/actions';
+import { IconChevronRight, IconGlobe } from '@/components/admin/AdminIcons';
+import { Avatar, EmptyState, PageHeader, ui, useToast } from '@/components/admin/ui';
 
 /**
  * Shown on pages that edit one website (content, settings, speakers…) while the
@@ -19,37 +21,46 @@ export default function ChooseSite({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
+  const [toast, showToast] = useToast();
 
   const choose = async (id: string) => {
     setPending(id);
     const res = await selectAdminSite(id);
-    if (!res.success) alert(res.error);
+    if (!res.success) showToast(res.error, 'error');
     router.refresh();
     setPending(null);
   };
 
   return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-lg)', padding: '36px 32px', maxWidth: 640 }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: 8 }}>{title}</h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem', marginBottom: 24 }}>{message}</p>
-        {sites.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+    <div className={ui.page}>
+      <PageHeader eyebrow="Websites" icon={<IconGlobe size={14} />} title={title} description={message} />
+      <section className={ui.panel} style={{ maxWidth: 640 }}>
+        {sites.length === 0 ? (
+          <EmptyState icon={<IconGlobe size={22} />} title="No website has this turned on">
+            A super admin can enable it under Websites.
+          </EmptyState>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', padding: 8 }}>
             {sites.map((s) => (
               <button
                 key={s.id}
                 type="button"
-                className="btn btn-primary"
-                style={{ padding: '10px 18px', fontSize: '0.875rem' }}
+                className={ui.sideItem}
+                style={{ padding: '12px 14px' }}
                 disabled={pending !== null}
                 onClick={() => choose(s.id)}
               >
-                {pending === s.id ? 'Opening…' : s.name}
+                <span className={ui.person}>
+                  <Avatar name={s.name.replace(/^the\s+/i, '')} />
+                  <span className={ui.cellMain}>{s.name}</span>
+                </span>
+                {pending === s.id ? <span className={ui.count}>Opening…</span> : <IconChevronRight size={18} />}
               </button>
             ))}
           </div>
         )}
-      </div>
+      </section>
+      {toast}
     </div>
   );
 }

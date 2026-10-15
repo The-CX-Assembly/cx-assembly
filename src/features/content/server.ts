@@ -14,6 +14,11 @@ const emptySettings: SiteSettings = {
   foundingCount: '',
 };
 
+function privacyText(data: Record<string, unknown>): string | undefined {
+  const doc = (data.privacy ?? data.privacyPolicy) as { privacyPolicy?: unknown } | undefined;
+  return typeof doc?.privacyPolicy === 'string' && doc.privacyPolicy.trim() ? doc.privacyPolicy : undefined;
+}
+
 /** The original site's typed page copy, with defaults for anything not yet edited. */
 export async function getSiteContent(): Promise<SiteContent> {
   const db = getAdminDb();
@@ -37,7 +42,8 @@ export async function getSiteContent(): Promise<SiteContent> {
       forPartners: { ...defaultContent.forPartners, ...data.forPartners },
       aboutUs: { ...defaultContent.aboutUs, ...data.aboutUs },
       founding50: { ...defaultContent.founding50, ...data.founding50 },
-      privacyPolicy: data.privacyPolicy || defaultContent.privacyPolicy,
+      // The editor saves the policy as siteContent/privacy { privacyPolicy }.
+      privacyPolicy: privacyText(data as Record<string, unknown>) || defaultContent.privacyPolicy,
     };
   } catch (error) {
     console.warn('Error reading siteContent from Firestore, using default:', error);

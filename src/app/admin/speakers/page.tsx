@@ -24,19 +24,6 @@ export default async function AdminSpeakersPage() {
 
   const speakers = await getAllSpeakersAdmin(site.id);
 
-  return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
-          CMO Speakers ({speakers.length})
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem' }}>
-          Upload headshots, manage speaker biographies, reorder speakers, and toggle publishing.
-        </p>
-      </div>
-
-      {/* Keyed so switching websites resets the editor. */}
-      <SpeakersManager key={site.id} siteId={site.id} initialSpeakers={speakers} />
-    </div>
-  );
+  // Keyed so switching websites resets the editor.
+  return <SpeakersManager key={site.id} siteId={site.id} initialSpeakers={speakers} />;
 }

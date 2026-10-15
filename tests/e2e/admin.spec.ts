@@ -11,8 +11,9 @@ test('every admin page renders', async ({ page }) => {
 
   const pages: [path: string, heading: RegExp][] = [
     ['/admin', /Good (morning|afternoon|evening)/],
-    ['/admin/leads', /Applications & Inquiries/],
-    ['/admin/content', /Copy & Sections/],
+    ['/admin/leads', /Leads/],
+    ['/admin/content', /Content/],
+    ['/admin/media', /Videos & PDFs/],
     ['/admin/settings', /Settings/],
     ['/admin/speakers', /CMO Speakers/],
     ['/admin/sites', /Websites/],
@@ -44,8 +45,8 @@ test('dashboard shows Lead Sources and the website switcher', async ({ page }) =
 test('speakers list is paginated and uses the new naming', async ({ page }) => {
   await page.goto('/admin/speakers');
   await expect(page.getByRole('navigation', { name: 'speakers pages' })).toContainText(/Showing\s*1\s*–\s*\d+\s*of\s*\d+\s*speakers/);
-  await page.getByRole('button', { name: '+ Add CMO Speaker' }).click();
-  await expect(page.getByText('Add CMO Speaker', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Add CMO Speaker' }).click();
+  await expect(page.getByRole('dialog', { name: 'Add CMO Speaker' })).toBeVisible();
 });
 
 test('a lead submitted from a campaign link reaches the inbox with its source', async ({ page }) => {
@@ -69,4 +70,37 @@ test('a lead submitted from a campaign link reaches the inbox with its source', 
 
   await page.goto('/admin');
   await expect(page.locator('section[aria-labelledby="lead-sources-title"]')).toContainText('e2e-inbox');
+});
+
+test('lead details open in a side panel and the status can be changed there', async ({ page }) => {
+  test.skip(!HAS_DB, 'Needs a lead in the database (runs in CI against the Firestore emulator).');
+  await page.goto('/admin/leads');
+  await page.locator('tbody tr').first().click();
+  const panel = page.getByRole('dialog');
+  await expect(panel.getByText('Where they came from')).toBeVisible();
+  await panel.getByRole('radio', { name: 'Reviewing' }).click();
+  await expect(panel.getByRole('radio', { name: 'Reviewing' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('status').filter({ hasText: 'Marked as Reviewing' })).toBeVisible();
+});
+
+test('content editor shows every section and tracks unsaved changes', async ({ page }) => {
+  await page.goto('/admin/content');
+  for (const name of ['Hero', 'Why We Exist', 'Philosophy', 'For CX Leaders', 'For Partners', 'About Us', 'Founding 50', 'Privacy Policy']) {
+    await expect(page.getByRole('navigation', { name: 'Page sections' }).getByRole('button', { name })).toBeVisible();
+  }
+  // Philosophy used to have no editor at all.
+  await page.getByRole('navigation', { name: 'Page sections' }).getByRole('button', { name: 'Philosophy' }).click();
+  await expect(page.getByLabel('Pillar 1 title')).toBeVisible();
+  await page.getByLabel('Pillar 1 title').fill('Changed title');
+  await expect(page.getByText('Unsaved changes')).toBeVisible();
+  await page.getByRole('button', { name: 'Discard' }).click();
+  await expect(page.getByText('Unsaved changes')).toHaveCount(0);
+});
+
+test('videos & PDFs start switched off', async ({ page }) => {
+  await page.goto('/admin/media');
+  await page.getByRole('tab', { name: /Where they appear/ }).click();
+  for (const name of ['Video section on the home page', 'Videos page', 'Resources page']) {
+    await expect(page.getByRole('switch', { name })).toHaveAttribute('aria-checked', 'false');
+  }
 });

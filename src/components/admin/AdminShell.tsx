@@ -27,6 +27,7 @@ import {
   IconShield,
   IconSidebar,
   IconStar,
+  IconVideo,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
 
@@ -57,6 +58,7 @@ const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' |
   { label: 'Leads', href: '/admin/leads', section: 'leads' },
   { label: 'CMO Speakers', href: '/admin/speakers', section: 'leaders' },
   { label: 'Content', href: '/admin/content', section: 'content' },
+  { label: 'Media', href: '/admin/media', section: 'media' },
   { label: 'Websites', href: '/admin/sites', section: 'sites' },
   { label: 'Users', href: '/admin/users', section: 'users' },
 ];
@@ -144,6 +146,7 @@ export default function AdminShell({
     { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
     { label: 'CMO Speakers', href: '/admin/speakers', icon: IconStar, section: 'leaders' as const, badge: speakerCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
+    { label: 'Videos & PDFs', href: '/admin/media', icon: IconVideo, section: 'media' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
     { label: 'Websites', href: '/admin/sites', icon: IconGlobe, section: 'sites' as const },
     { label: 'Users & Access', href: '/admin/users', icon: IconShield, section: 'users' as const },

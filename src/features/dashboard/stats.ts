@@ -7,9 +7,10 @@ import { DEFAULT_SITE_ID, siteIdOf } from '@/features/sites/constants';
 import { sampleSpeakers } from '@/features/content/defaults';
 import { InterestType, Lead, LeadSource, LeadStatus } from '@/types';
 
-// The community is India-based, so day/month buckets follow IST rather than
-// the server's (UTC) clock.
-const TZ = 'Asia/Kolkata';
+import { TZ, timeAgo } from '@/lib/format';
+
+// Day/month buckets follow IST (see lib/format.ts).
+export { timeAgo };
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type TrendRange = 'week' | 'month' | 'year';
@@ -97,21 +98,6 @@ export const getShellSummary = cache(async (siteId: string | null): Promise<Shel
     return fallback;
   }
 });
-
-export function timeAgo(iso: string | undefined, now = Date.now()): string {
-  if (!iso) return 'Recently';
-  const time = new Date(iso).getTime();
-  if (Number.isNaN(time)) return 'Recently';
-
-  const minutes = Math.floor(Math.max(0, now - time) / 60000);
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
-  return new Date(time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: TZ });
-}
 
 export function greeting(now = new Date()): string {
   const hour = Number(now.toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: TZ }));

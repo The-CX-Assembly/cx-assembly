@@ -78,30 +78,35 @@ Production backend: make sure **automatic rollouts are on** for live branch `mai
 
 ### 3. GitHub Actions access to Google Cloud (keyless)
 
-For **each** project, in [Cloud Shell](https://shell.cloud.google.com):
+Lets the rules workflow deploy without storing any key in GitHub: each project trusts GitHub Actions from this repository only, through a service account that can manage rules and indexes and nothing else.
+
+In [Cloud Shell](https://shell.cloud.google.com), signed in as the projects' owner, run once (safe to re-run; "already exists" messages are harmless):
 
 ```bash
-PROJECT_ID=the-cx-assembly-staging   # then repeat with the-cx-assembly
 REPO=The-CX-Assembly/cx-assembly
-PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+for PROJECT_ID in the-cx-assembly-staging the-cx-assembly; do
+  echo "=== $PROJECT_ID"
+  gcloud config set project $PROJECT_ID --quiet
+  PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+  gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com --quiet
 
-gcloud iam workload-identity-pools create github --project=$PROJECT_ID --location=global --display-name="GitHub Actions"
-gcloud iam workload-identity-pools providers create-oidc github --project=$PROJECT_ID --location=global \
-  --workload-identity-pool=github --issuer-uri="https://token.actions.githubusercontent.com" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-  --attribute-condition="assertion.repository=='$REPO'"
+  gcloud iam workload-identity-pools create github --location=global --display-name="GitHub Actions" --quiet
+  gcloud iam workload-identity-pools providers create-oidc github --location=global     --workload-identity-pool=github --issuer-uri="https://token.actions.githubusercontent.com"     --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository"     --attribute-condition="assertion.repository=='$REPO'" --quiet
 
-gcloud iam service-accounts create github-deployer --project=$PROJECT_ID --display-name="GitHub Actions deployer"
-SA=github-deployer@$PROJECT_ID.iam.gserviceaccount.com
-for ROLE in roles/firebaserules.admin roles/datastore.indexAdmin roles/firebase.viewer roles/serviceusage.serviceUsageConsumer; do
-  gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA" --role=$ROLE --condition=None
+  gcloud iam service-accounts create github-deployer --display-name="GitHub Actions deployer" --quiet
+  SA=github-deployer@$PROJECT_ID.iam.gserviceaccount.com
+  for ROLE in roles/firebaserules.admin roles/datastore.indexAdmin roles/firebase.viewer               roles/serviceusage.serviceUsageConsumer roles/serviceusage.serviceUsageViewer; do
+    gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA" --role=$ROLE --condition=None --quiet >/dev/null
+  done
+  gcloud iam service-accounts add-iam-policy-binding $SA --role=roles/iam.workloadIdentityUser     --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/$REPO" --quiet >/dev/null
+
+  echo ">>> $PROJECT_ID"
+  echo "GCP_WORKLOAD_IDENTITY_PROVIDER = projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/github"
+  echo "GCP_SERVICE_ACCOUNT            = $SA"
 done
-gcloud iam service-accounts add-iam-policy-binding $SA --project=$PROJECT_ID --role=roles/iam.workloadIdentityUser \
-  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/$REPO"
-
-echo "GCP_WORKLOAD_IDENTITY_PROVIDER = projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/github"
-echo "GCP_SERVICE_ACCOUNT            = $SA"
 ```
+
+The last lines printed for each project are the values for the GitHub environments in the next step (not secret).
 
 ### 4. GitHub settings
 
@@ -118,5 +123,5 @@ On `production`, add **Required reviewers: the owner**.
 
 **Branch rules** (Settings → Rules → Rulesets):
 
-- **`main`**: require a pull request with **1 approval** and **Code Owners review**. Required status checks: *Lint, typecheck & unit tests* and *Build & browser tests*. Block force pushes and deletion. Add the owner to the **bypass list**, so the owner can merge their own PRs (GitHub doesn't let authors approve their own).
+- **`main`**: require a pull request with **1 approval** and **Code Owners review**. Required status checks: `lint` and `build` (the two CI jobs; type them exactly). Block force pushes and deletion. Add the owner to the **bypass list**, so the owner can merge their own PRs (GitHub doesn't let authors approve their own).
 - **`staging`**: require a pull request and the same two status checks (no approval needed). Block force pushes and deletion.

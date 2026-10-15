@@ -5,6 +5,9 @@ import { getAllLeads } from '@/features/dashboard/stats';
 import { hasAdminCredentials } from '@/server/firebase-admin';
 import { siteIdOf } from '@/features/sites/constants';
 import SitesManager from '@/features/sites/components/SitesManager';
+import { PageHeader } from '@/components/admin/ui';
+import { IconGlobe } from '@/components/admin/AdminIcons';
+import ui from '@/components/admin/ui.module.css';
 
 /** The address other websites call, as seen by this request (works on any domain). */
 async function apiBaseUrl() {
@@ -22,17 +25,14 @@ export default async function AdminSitesPage() {
   for (const lead of leads) leadCounts[siteIdOf(lead)] = (leadCounts[siteIdOf(lead)] ?? 0) + 1;
 
   return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '6px' }}>
-          Websites ({sites.length})
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9375rem', maxWidth: 760 }}>
-          Every website managed from this dashboard. Each one gets an API key to send its form submissions here and
-          fetch the content you edit. Switch between websites from the selector at the top of the page.
-        </p>
-      </div>
-
+    <div className={ui.page}>
+      <PageHeader
+        eyebrow="Super admin"
+        icon={<IconGlobe size={14} />}
+        title="Websites"
+        count={sites.length}
+        description="Every website managed from this dashboard. Each gets an API key to send its form submissions here and fetch the content you edit."
+      />
       <SitesManager sites={sites} leadCounts={leadCounts} baseUrl={baseUrl} canWrite={hasAdminCredentials()} />
     </div>
   );
