@@ -4,12 +4,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { selectAdminSite } from '@/app/actions/sites';
-import { ALL_SITES } from '@/lib/site-constants';
+import { selectAdminSite } from '@/features/sites/actions';
+import { ALL_SITES } from '@/features/sites/constants';
 import type { SiteModule } from '@/types';
-import { logoutAdminAction } from '@/app/actions/auth';
-import type { ShellLead } from '@/lib/admin-stats';
-import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/lib/admin-sections';
+import { logoutAdminAction } from '@/features/auth/actions';
+import type { ShellLead } from '@/features/dashboard/stats';
+import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/features/auth/sections';
 import {
   IconBell,
   IconCheck,
@@ -47,7 +47,7 @@ interface AdminShellProps {
   /** The website being managed; null means all websites. */
   siteId: string | null;
   newLeadsCount: number;
-  leaderCount: number;
+  speakerCount: number;
   newLeads: ShellLead[];
   children: React.ReactNode;
 }
@@ -55,7 +55,7 @@ interface AdminShellProps {
 const TOP_TABS: { label: string; href: string; section: AdminSection | 'users' | 'sites' }[] = [
   { label: 'Dashboard', href: '/admin', section: 'dashboard' },
   { label: 'Leads', href: '/admin/leads', section: 'leads' },
-  { label: 'CMO Speakers', href: '/admin/leaders', section: 'leaders' },
+  { label: 'CMO Speakers', href: '/admin/speakers', section: 'leaders' },
   { label: 'Content', href: '/admin/content', section: 'content' },
   { label: 'Websites', href: '/admin/sites', section: 'sites' },
   { label: 'Users', href: '/admin/users', section: 'users' },
@@ -70,7 +70,7 @@ export default function AdminShell({
   sites,
   siteId,
   newLeadsCount,
-  leaderCount,
+  speakerCount,
   newLeads,
   children,
 }: AdminShellProps) {
@@ -142,7 +142,7 @@ export default function AdminShell({
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
     { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
-    { label: 'CMO Speakers', href: '/admin/leaders', icon: IconStar, section: 'leaders' as const, badge: leaderCount },
+    { label: 'CMO Speakers', href: '/admin/speakers', icon: IconStar, section: 'leaders' as const, badge: speakerCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
     { label: 'Websites', href: '/admin/sites', icon: IconGlobe, section: 'sites' as const },

@@ -1,0 +1,77 @@
+name: CI
+
+# Every push and every pull request into staging or main. Branch protection
+# requires both jobs to pass before a PR can be merged.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [staging, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  e2e:
+    name: Build & browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+      # Test-only values: the app runs against a throwaway Firestore emulator
+      # ("demo-" projects never reach real Firebase), not staging or production.
+      FIREBASE_PROJECT_ID: demo-cx-assembly
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-cx-assembly
+      ADMIN_SESSION_SECRET: ci-only-session-secret-not-used-anywhere-else
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # The Firestore emulator needs Java.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e:ci
+      # Job logs need a GitHub login; annotations don't. Surface the app server's
+      # errors so a failed run can be diagnosed from the run summary.
+      - name: Show app server errors
+        if: failure()
+        run: |
+          if [ -f server.log ]; then
+            grep -inE "error|warn|fail|exception" server.log | tail -n 25 | while IFS= read -r line; do
+              echo "::warning title=App server log::$line"
+            done
+          fi
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

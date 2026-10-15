@@ -1,0 +1,35 @@
+# Firebase App Hosting settings: STAGING (project the-cx-assembly-staging, live branch staging).
+# Used by the backend whose "environment name" is "staging"; values here override
+# apphosting.yaml. Staging has its own database, storage, sign-in and secrets, so
+# nothing done on staging can touch the live site.
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+
+env:
+  # Hides staging from search engines, turns off analytics and shows a STAGING badge.
+  - variable: NEXT_PUBLIC_APP_ENV
+    value: staging
+
+  # Read from the STAGING project's Secret Manager (a different value from production):
+  #   firebase apphosting:secrets:set ADMIN_SESSION_SECRET --project the-cx-assembly-staging
+  - variable: ADMIN_SESSION_SECRET
+    secret: ADMIN_SESSION_SECRET
+
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://cx-assembly-staging--the-cx-assembly-staging.us-east4.hosted.app
+
+  # Staging web app "cx-assembly-staging" (public values, safe in the browser).
+  # Every value must be overridden, or sign-in on staging would use the production project.
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: the-cx-assembly-staging
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:561857745677:web:18f6c7efbdc0550eef1644
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyBbEEM_N-zzFn7-A8TuxOu7v9G9sHQYq-E
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: the-cx-assembly-staging.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "561857745677"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: the-cx-assembly-staging.firebasestorage.app

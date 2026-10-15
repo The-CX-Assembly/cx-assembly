@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  async redirects() {
+    return [
+      // The admin page was renamed from Leaders to CMO Speakers.
+      { source: '/admin/leaders', destination: '/admin/speakers', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

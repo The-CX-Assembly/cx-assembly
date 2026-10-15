@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getAdminSession } from '@/lib/auth-session';
-import { homePathFor } from '@/lib/admin-sections';
-import LoginForm from '@/components/admin/LoginForm';
+import { getAdminSession } from '@/features/auth/session';
+import { homePathFor } from '@/features/auth/sections';
+import LoginForm from '@/features/auth/components/LoginForm';
 
 export const metadata: Metadata = {
   title: 'Admin sign in',

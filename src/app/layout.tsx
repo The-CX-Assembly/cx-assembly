@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Mona_Sans } from 'next/font/google';
 import './globals.css';
-import { defaultSettings } from '@/lib/default-content';
-import { getSiteSettings } from '@/lib/content';
-import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/lib/seo';
-import { JoinModalProvider } from '@/components/JoinModal';
-import GoogleTagManager from '@/components/GoogleTagManager';
-import JsonLd from '@/components/JsonLd';
-import ScrollReset from '@/components/ScrollReset';
+import { defaultSettings } from '@/features/content/defaults';
+import { getSiteSettings } from '@/features/content/server';
+import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/features/seo/metadata';
+import { JoinModalProvider } from '@/features/leads/components/JoinModal';
+import GoogleTagManager from '@/features/seo/components/GoogleTagManager';
+import JsonLd from '@/features/seo/components/JsonLd';
+import ScrollReset from '@/components/site/ScrollReset';
+import EnvironmentBanner from '@/components/EnvironmentBanner';
 
 const monaSans = Mona_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -82,6 +83,7 @@ export default async function RootLayout({
         <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
         <ScrollReset />
         <JoinModalProvider>{children}</JoinModalProvider>
+        <EnvironmentBanner />
       </body>
     </html>
   );
