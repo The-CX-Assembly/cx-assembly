@@ -1,7 +1,7 @@
-import { getAdminSession } from '@/lib/auth-session';
-import { getAdminSiteContext } from '@/lib/admin-site';
-import { buildShellLeads, getShellSummary } from '@/lib/admin-stats';
-import { canAccess } from '@/lib/admin-sections';
+import { getAdminSession } from '@/features/auth/session';
+import { getAdminSiteContext } from '@/features/sites/admin-site';
+import { buildShellLeads, getShellSummary } from '@/features/dashboard/stats';
+import { canAccess } from '@/features/auth/sections';
 import type { Metadata } from 'next';
 import AdminShell from '@/components/admin/AdminShell';
 
@@ -24,7 +24,7 @@ export default async function AdminLayout({
   }
 
   const { sites, site } = await getAdminSiteContext();
-  const { newLeads, leaderCount } = await getShellSummary(site?.id ?? null);
+  const { newLeads, speakerCount } = await getShellSummary(site?.id ?? null);
   // Applicant names only go to people allowed to see the inbox.
   const canLeads = canAccess(user, 'leads');
   // With one website there's no need to say which one a lead came from.
@@ -36,7 +36,7 @@ export default async function AdminLayout({
       sites={sites.map((s) => ({ id: s.id, name: s.name, url: s.url, modules: s.modules }))}
       siteId={site?.id ?? null}
       newLeadsCount={canLeads ? newLeads.length : 0}
-      leaderCount={leaderCount}
+      speakerCount={speakerCount}
       newLeads={canLeads ? buildShellLeads(newLeads, siteNames).slice(0, 5) : []}
     >
       {children}

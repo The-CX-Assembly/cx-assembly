@@ -1,27 +1,27 @@
 import Link from 'next/link';
-import { requireSection } from '@/lib/auth-session';
-import { getAdminSiteContext } from '@/lib/admin-site';
-import { getAllLeadersAdmin } from '@/lib/content';
-import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/lib/admin-stats';
-import { siteIdOf } from '@/lib/site-constants';
-import RecentLeadsTable from '@/components/admin/RecentLeadsTable';
-import LeadSources from '@/components/admin/dashboard/LeadSources';
-import TrendChart from '@/components/admin/dashboard/TrendChart';
-import PipelineBars from '@/components/admin/dashboard/PipelineBars';
-import RadialStat from '@/components/admin/dashboard/RadialStat';
-import MixGauge from '@/components/admin/dashboard/MixGauge';
+import { requireSection } from '@/features/auth/session';
+import { getAdminSiteContext } from '@/features/sites/admin-site';
+import { getAllSpeakersAdmin } from '@/features/speakers/server';
+import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/features/dashboard/stats';
+import { siteIdOf } from '@/features/sites/constants';
+import RecentLeadsTable from '@/features/leads/components/RecentLeadsTable';
+import LeadSources from '@/features/dashboard/components/LeadSources';
+import TrendChart from '@/features/dashboard/components/TrendChart';
+import PipelineBars from '@/features/dashboard/components/PipelineBars';
+import RadialStat from '@/features/dashboard/components/RadialStat';
+import MixGauge from '@/features/dashboard/components/MixGauge';
 import { IconInbox, IconPlus } from '@/components/admin/AdminIcons';
-import styles from '@/components/admin/dashboard/dashboard.module.css';
+import styles from '@/features/dashboard/components/dashboard.module.css';
 
 
 export default async function AdminDashboardPage() {
   const session = await requireSection('dashboard');
   const { site } = await getAdminSiteContext();
-  const hasLeaders = Boolean(site?.modules.includes('leaders'));
+  const hasSpeakers = Boolean(site?.modules.includes('leaders'));
 
-  const [allLeads, leaders] = await Promise.all([
+  const [allLeads, speakers] = await Promise.all([
     getAllLeads(),
-    hasLeaders && site ? getAllLeadersAdmin(site.id) : Promise.resolve([]),
+    hasSpeakers && site ? getAllSpeakersAdmin(site.id) : Promise.resolve([]),
   ]);
   // A website shows its own leads; "All websites" shows every lead.
   const leads = site ? allLeads.filter((l) => siteIdOf(l) === site.id) : allLeads;
@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
   const total = leads.length;
   const newCount = leads.filter((l) => l.status === 'new').length;
   const approvedCount = leads.filter((l) => l.status === 'approved').length;
-  const liveLeaders = leaders.filter((l) => l.published).length;
+  const liveSpeakers = speakers.filter((l) => l.published).length;
   const pct = (part: number, whole: number) => (whole ? (part / whole) * 100 : 0);
   // Leads from the last 30 days, already bucketed for the mix chart.
   const thisMonth = dashboard.mix.month.reduce((n, slice) => n + slice.count, 0);
@@ -46,15 +46,15 @@ export default async function AdminDashboardPage() {
       colorTo: '#C9BBFF',
       href: '/admin/leads',
     },
-    hasLeaders
+    hasSpeakers
       ? {
           title: 'CMO Speakers',
           caption: 'published',
-          value: liveLeaders,
-          percent: pct(liveLeaders, leaders.length),
+          value: liveSpeakers,
+          percent: pct(liveSpeakers, speakers.length),
           color: '#F25F5C',
           colorTo: '#FFB3B1',
-          href: '/admin/leaders',
+          href: '/admin/speakers',
         }
       : {
           title: 'This month',
@@ -108,8 +108,8 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/leads" className={`${styles.btn} ${styles.btnGhost}`}>
             <IconInbox size={16} /> Review inbox
           </Link>
-          {hasLeaders && (
-            <Link href="/admin/leaders" className={`${styles.btn} ${styles.btnPrimary}`}>
+          {hasSpeakers && (
+            <Link href="/admin/speakers" className={`${styles.btn} ${styles.btnPrimary}`}>
               <IconPlus size={16} /> Add speaker
             </Link>
           )}

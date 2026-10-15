@@ -1,10 +1,10 @@
 import { headers } from 'next/headers';
-import { requireSuperadmin } from '@/lib/auth-session';
-import { listSites } from '@/lib/sites';
-import { getAllLeads } from '@/lib/admin-stats';
-import { hasAdminCredentials } from '@/lib/firebase-admin';
-import { siteIdOf } from '@/lib/site-constants';
-import SitesManager from '@/components/admin/SitesManager';
+import { requireSuperadmin } from '@/features/auth/session';
+import { listSites } from '@/features/sites/server';
+import { getAllLeads } from '@/features/dashboard/stats';
+import { hasAdminCredentials } from '@/server/firebase-admin';
+import { siteIdOf } from '@/features/sites/constants';
+import SitesManager from '@/features/sites/components/SitesManager';
 
 /** The address other websites call, as seen by this request (works on any domain). */
 async function apiBaseUrl() {

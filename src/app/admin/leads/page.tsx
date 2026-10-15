@@ -1,8 +1,8 @@
-import { requireSection } from '@/lib/auth-session';
-import { getAdminSiteContext } from '@/lib/admin-site';
-import { getAllLeads } from '@/lib/admin-stats';
-import { ALL_SITES } from '@/lib/site-constants';
-import LeadsManager from '@/components/admin/LeadsManager';
+import { requireSection } from '@/features/auth/session';
+import { getAdminSiteContext } from '@/features/sites/admin-site';
+import { getAllLeads } from '@/features/dashboard/stats';
+import { ALL_SITES } from '@/features/sites/constants';
+import LeadsManager from '@/features/leads/components/LeadsManager';
 
 export default async function AdminLeadsPage({
   searchParams,

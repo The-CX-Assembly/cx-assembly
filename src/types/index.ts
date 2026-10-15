@@ -1,9 +1,10 @@
-import type { AdminRole, AdminSection } from '@/lib/admin-sections';
+import type { AdminRole, AdminSection } from '@/features/auth/sections';
 
 export type InterestType = 'cx_leader' | 'partner' | 'other';
 export type LeadStatus = 'new' | 'reviewed' | 'approved' | 'rejected';
 
-export interface Leader {
+/** A CMO Speaker profile (stored in the "leaders" collection). */
+export interface Speaker {
   id: string;
   name: string;
   designation: string;

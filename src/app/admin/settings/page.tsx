@@ -1,8 +1,8 @@
-import { requireSection } from '@/lib/auth-session';
-import { getAdminSiteContext } from '@/lib/admin-site';
-import { getSiteSettings } from '@/lib/content';
-import SettingsManager from '@/components/admin/SettingsManager';
-import ChooseSite from '@/components/admin/ChooseSite';
+import { requireSection } from '@/features/auth/session';
+import { getAdminSiteContext } from '@/features/sites/admin-site';
+import { getSiteSettings } from '@/features/content/server';
+import SettingsManager from '@/features/content/components/SettingsManager';
+import ChooseSite from '@/features/sites/components/ChooseSite';
 
 export default async function AdminSettingsPage() {
   await requireSection('settings');

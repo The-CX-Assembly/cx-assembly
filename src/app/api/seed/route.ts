@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
-import { getAdminDb } from '@/lib/firebase-admin';
-import { getAdminSession } from '@/lib/auth-session';
+import { getAdminDb } from '@/server/firebase-admin';
+import { getAdminSession } from '@/features/auth/session';
 import {
   defaultContent,
   defaultSettings,
-  sampleLeaders,
+  sampleSpeakers,
   sampleVoices,
-} from '@/lib/default-content';
+} from '@/features/content/defaults';
 
 function hasSeedSecret(request: Request) {
   const expected = process.env.ADMIN_SESSION_SECRET;
@@ -45,9 +45,9 @@ export async function GET(request: Request) {
     // 2. Seed Settings
     await db.collection('settings').doc('general').set(defaultSettings);
 
-    // 3. Seed Leaders
-    for (const leader of sampleLeaders) {
-      const { id, ...data } = leader;
+    // 3. Seed CMO Speakers (stored in the "leaders" collection)
+    for (const speaker of sampleSpeakers) {
+      const { id, ...data } = speaker;
       await db.collection('leaders').doc(id).set(data);
     }
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       success: true,
       message: 'Firestore collections successfully populated with CX Assembly data!',
       counts: {
-        leaders: sampleLeaders.length,
+        speakers: sampleSpeakers.length,
         voices: sampleVoices.length,
       },
     });

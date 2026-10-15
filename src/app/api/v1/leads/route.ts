@@ -1,6 +1,6 @@
-import { apiLeadSchema } from '@/lib/validation';
-import { saveLead } from '@/lib/leads';
-import { apiJson, authenticateSite, preflight } from '@/lib/public-api';
+import { apiLeadSchema } from '@/features/leads/validation';
+import { saveLead } from '@/features/leads/server';
+import { apiJson, authenticateSite, preflight } from '@/features/sites/public-api';
 
 export const OPTIONS = preflight;
 

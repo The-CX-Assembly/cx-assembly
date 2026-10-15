@@ -3,9 +3,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import {
   defaultContent,
   defaultSettings,
-  sampleLeaders,
+  sampleSpeakers,
   sampleVoices,
-} from '../src/lib/default-content';
+} from '@/features/content/defaults';
 
 async function main() {
   const projectId = process.env.FIREBASE_PROJECT_ID || 'the-cx-assembly';
@@ -29,10 +29,10 @@ async function main() {
   console.log('Seeding settings collection...');
   await db.collection('settings').doc('general').set(defaultSettings);
 
-  // 3. Seed Leaders
+  // 3. Seed CMO Speakers (stored in the "leaders" collection)
   console.log('Seeding leaders collection...');
-  for (const leader of sampleLeaders) {
-    const { id, ...data } = leader;
+  for (const speaker of sampleSpeakers) {
+    const { id, ...data } = speaker;
     await db.collection('leaders').doc(id).set(data);
   }
 

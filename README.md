@@ -14,7 +14,7 @@ Built with **Next.js 16 (App Router)**, **Cloud Firestore**, **Firebase Storage*
 - **Executive Aesthetic & Brand Identity**: Premium Navy theme (`#0C2339`), responsive layouts, micro-animations, glassmorphic headers, and editorial typography.
 - **Dynamic Content Management (`/admin/content`)**: Full CMS to edit page copy across every section with instant live revalidation.
 - **The Founding 50 Cohort (`/founding-50`)**: Roster of founding CX heads with executive headshots, company details, LinkedIn profiles, and interactive bio modals.
-- **Leader & Speaker Management (`/admin/leaders`)**: Add, edit, reorder, and upload headshots directly to Firebase Storage.
+- **CMO Speakers (`/admin/speakers`)**: Add, edit, reorder, and upload headshots directly to Firebase Storage.
 - **Community Voices (`/community-voices`)**: Testimonials and candid peer quotes (stored in the `voices` collection; no admin editor).
 - **Membership Application & Lead Capture**: Multi-purpose application form with real-time validation, spam honeypot, and instant inbox capture.
 - **Leads Inbox & CSV Export (`/admin/leads`)**: View all applications, search by applicant/company, update status, and one-click export to `.csv`.
@@ -59,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **URL**: `http://localhost:3000/admin/login`
 - **Sign-in**: "Continue with Google", or email + password (Firebase Authentication). Access is invitation-only.
-- **Super admins** (full access, including **Users & Access** at `/admin/users`) are defined in `src/lib/admin-users.ts`. They can invite users, choose each person's role and sections, and disable or remove them.
+- **Super admins** (full access, including **Users & Access** at `/admin/users`) are defined in `src/features/users/server.ts`. They can invite users, choose each person's role and sections, and disable or remove them.
 - **One-time Firebase setup**:
   1. Firebase Console → Authentication → Sign-in method: enable **Google** and **Email/Password**.
   2. Authentication → Settings → Authorized domains: add your App Hosting domain (`localhost` is allowed by default).
@@ -73,7 +73,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Site address**: `NEXT_PUBLIC_SITE_URL` in `apphosting.yaml` drives canonical links, the sitemap, `robots.txt` and link previews. It's set to the App Hosting URL; change it when a custom domain (e.g. `thecxassembly.com`) is connected, or previews will point at the old address.
 - **Home page title & description** come from **Settings** in the admin (SEO title / meta description).
-- **Other pages** are listed in `PAGES` in `src/lib/seo.ts`; `pageMetadata()` gives each its title (`Page - The CX Assembly`), canonical URL, `max-image-preview:large`, and Open Graph / X previews (incl. `og:image:secure_url`), and `pageGraph()` its schema.org WebPage + BreadcrumbList. The root layout adds Organization + WebSite. This mirrors the tag set on thecmoassembly.com.
+- **Other pages** are listed in `PAGES` in `src/features/seo/metadata.ts`; `pageMetadata()` gives each its title (`Page - The CX Assembly`), canonical URL, `max-image-preview:large`, and Open Graph / X previews (incl. `og:image:secure_url`), and `pageGraph()` its schema.org WebPage + BreadcrumbList. The root layout adds Organization + WebSite. This mirrors the tag set on thecmoassembly.com.
 - **Icons**: 32×32 and 192×192 favicons, a 180×180 Apple touch icon and a Windows tile in `public/brand/icons/`.
 - **Google Tag Manager / Search Console** (optional): set `NEXT_PUBLIC_GTM_ID` and/or `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` in `apphosting.yaml` (commented examples there). GTM never loads on admin pages.
 - **Preview image**: `public/brand/og-image.png` (1200×630). Replace the file to change what LinkedIn, WhatsApp, X and Slack show.
@@ -90,7 +90,7 @@ The admin dashboard is a shared hub. This app renders **The CX Assembly** (site 
 - **Switch websites**: the selector at the top of the dashboard changes which site the Dashboard, Content, Settings and Leaders pages manage. **All websites** shows combined leads and stats.
 - **Leads**: one inbox for every site, filterable by website and paginated, with the button, page and campaign each lead came from. CSV export includes all of it.
 - **Lead Sources** (dashboard): ranks applications by campaign, channel, button or landing page over 7 days, 30 days or all time, with approval rates.
-- **CMO Speakers** (`/admin/leaders`): the speaker roster shown on the website, paginated and reorderable.
+- **CMO Speakers** (`/admin/speakers`): the speaker roster shown on the website, paginated and reorderable.
 - **Content**: CX Assembly keeps its page editor. Other sites get free-form sections of text and list fields, read as `content.<section>.<field>`. Leader profiles can be turned on per site.
 
 ### Website API

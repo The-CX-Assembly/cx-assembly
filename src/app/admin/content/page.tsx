@@ -1,9 +1,9 @@
-import { requireSection } from '@/lib/auth-session';
-import { getAdminSiteContext } from '@/lib/admin-site';
-import { getContentSections, getSiteContent } from '@/lib/content';
-import ContentEditor from '@/components/admin/ContentEditor';
-import SectionsEditor from '@/components/admin/SectionsEditor';
-import ChooseSite from '@/components/admin/ChooseSite';
+import { requireSection } from '@/features/auth/session';
+import { getAdminSiteContext } from '@/features/sites/admin-site';
+import { getContentSections, getSiteContent } from '@/features/content/server';
+import ContentEditor from '@/features/content/components/ContentEditor';
+import SectionsEditor from '@/features/content/components/SectionsEditor';
+import ChooseSite from '@/features/sites/components/ChooseSite';
 
 export default async function AdminContentPage() {
   await requireSection('content');
