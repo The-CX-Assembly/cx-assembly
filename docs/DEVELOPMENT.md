@@ -50,7 +50,7 @@ Admin: http://localhost:3000/admin/login.
 
 ## Tests
 
-- **Unit tests** (`tests/unit/*.test.ts`) cover logic that can break quietly: validation, campaign attribution, Lead Sources grouping, SEO tags, pagination, staging safeguards. Add one when you change logic in `features/*`.
+- **Unit tests** (`tests/unit/*.test.ts`) cover logic that can break quietly: validation, campaign attribution, Lead Sources grouping, SEO tags, pagination, staging safeguards. Add one when you change logic in a module (`src/modules/*`).
 - **Browser tests** (`tests/e2e/*.spec.ts`) drive the real app. Locally they reuse a running `npm run dev` (or start one) and use your installed Chrome. Admin tests sign in with a cookie signed by your `ADMIN_SESSION_SECRET`.
   - The "lead reaches the inbox" test needs a database, so it is skipped locally and runs in CI.
   - Tests tagged `@smoke` are read-only and also run against deployed sites (`PLAYWRIGHT_BASE_URL=<url> npx playwright test --grep @smoke`).

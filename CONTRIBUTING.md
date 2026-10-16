@@ -29,8 +29,8 @@ Small and focused, with a clear message: `feat: …`, `fix: …`, `refactor: …
 
 ## Code conventions
 
-- **Put code in its feature folder** (`src/features/<area>`). Pages in `src/app` stay thin. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-- **Server-only code** (`server.ts`, anything using Firebase Admin) starts with `import 'server-only'` or lives under `src/server/`.
+- **Put code in its module, in the right layer** (`src/modules/<area>/{controllers,services,models,utils,components}`). Pages in `src/app` stay thin. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- **Server-only code** (`services/*.service.ts`, middlewares, anything using `config/firebase-admin.ts`) starts with `import 'server-only'`.
 - **`'use server'` files** export only async functions. Put shared helpers elsewhere.
 - **Admin actions** call `authorize(<section>)` first and take an explicit `siteId` (check it with `siteExists`).
 - **Naming:** it's **speakers** in code, but the stored names are still `leaders` (collection, permission, site feature, upload folder). Don't rename stored values without a data migration.

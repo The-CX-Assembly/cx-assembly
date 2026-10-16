@@ -3,12 +3,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
-import SpeakerCard from '@/features/speakers/components/SpeakerCard';
+import SpeakerCard from '@/modules/speakers/components/SpeakerCard';
 import HeroArt from '@/components/site/HeroArt';
 import InView from '@/components/site/InView';
 import PhilosophyShowcase from '@/components/site/PhilosophyShowcase';
 import RevealWords, { sentenceLines } from '@/components/site/RevealWords';
-import { JoinButton } from '@/features/leads/components/JoinModal';
+import { JoinButton } from '@/modules/leads/components/JoinModal';
 import { Accent, Eyebrow } from '@/components/site/Type';
 import {
   ArrowDownRight,
@@ -18,13 +18,13 @@ import {
   SparkIcon,
   UsersIcon,
 } from '@/components/site/Icons';
-import { getSiteContent, getSiteSettings } from '@/features/content/server';
-import { getSpeakers } from '@/features/speakers/server';
-import { pageGraph } from '@/features/seo/metadata';
-import { defaultSettings } from '@/features/content/defaults';
-import JsonLd from '@/features/seo/components/JsonLd';
-import { getMediaSettings, getPublishedVideos } from '@/features/media/server';
-import VideoGrid from '@/features/media/components/VideoGrid';
+import { getSiteContent, getSiteSettings } from '@/modules/content/services/content.service';
+import { getSpeakers } from '@/modules/speakers/services/speakers.service';
+import { pageGraph } from '@/modules/seo/utils/metadata';
+import { defaultSettings } from '@/modules/content/models/content.defaults';
+import JsonLd from '@/modules/seo/components/JsonLd';
+import { getMediaSettings, getPublishedVideos } from '@/modules/media/services/media.service';
+import VideoGrid from '@/modules/media/components/VideoGrid';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
 

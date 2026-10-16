@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apiLeadSchema, leadSchema } from '@/features/leads/validation';
+import { apiLeadSchema, leadSchema } from '@/modules/leads/models/lead.schema';
 
 const validForm = {
   fullName: 'Asha Rao',

@@ -1,7 +1,7 @@
-import { getAdminSession } from '@/features/auth/session';
-import { getAdminSiteContext } from '@/features/sites/admin-site';
-import { buildShellLeads, getShellSummary } from '@/features/dashboard/stats';
-import { canAccess } from '@/features/auth/sections';
+import { getAdminSession } from '@/middlewares/auth.middleware';
+import { getAdminSiteContext } from '@/modules/sites/services/admin-site.service';
+import { buildShellLeads, getShellSummary } from '@/modules/dashboard/services/dashboard.service';
+import { canAccess } from '@/modules/auth/models/access.model';
 import type { Metadata } from 'next';
 import AdminShell from '@/components/admin/AdminShell';
 

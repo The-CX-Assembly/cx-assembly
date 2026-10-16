@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
 import { Eyebrow } from '@/components/site/Type';
-import { getMediaSettings, getPublishedResources } from '@/features/media/server';
-import ResourceList from '@/features/media/components/ResourceList';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { getMediaSettings, getPublishedResources } from '@/modules/media/services/media.service';
+import ResourceList from '@/modules/media/components/ResourceList';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.resources);
 

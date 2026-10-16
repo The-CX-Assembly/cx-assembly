@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Mona_Sans } from 'next/font/google';
 import './globals.css';
-import { defaultSettings } from '@/features/content/defaults';
-import { getSiteSettings } from '@/features/content/server';
-import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/features/seo/metadata';
-import { JoinModalProvider } from '@/features/leads/components/JoinModal';
-import GoogleTagManager from '@/features/seo/components/GoogleTagManager';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { defaultSettings } from '@/modules/content/models/content.defaults';
+import { getSiteSettings } from '@/modules/content/services/content.service';
+import { SITE_NAME, SITE_URL, pageMetadata, siteGraph } from '@/modules/seo/utils/metadata';
+import { JoinModalProvider } from '@/modules/leads/components/JoinModal';
+import GoogleTagManager from '@/modules/seo/components/GoogleTagManager';
+import JsonLd from '@/modules/seo/components/JsonLd';
 import ScrollReset from '@/components/site/ScrollReset';
 import EnvironmentBanner from '@/components/EnvironmentBanner';
 

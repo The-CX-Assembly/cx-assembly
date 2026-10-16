@@ -5,7 +5,7 @@ import {
   defaultSettings,
   sampleSpeakers,
   sampleVoices,
-} from '@/features/content/defaults';
+} from '@/modules/content/models/content.defaults';
 
 async function main() {
   const projectId = process.env.FIREBASE_PROJECT_ID || 'the-cx-assembly';

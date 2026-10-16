@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 async function load(appEnv?: string) {
   vi.resetModules();
   if (appEnv) vi.stubEnv('NEXT_PUBLIC_APP_ENV', appEnv);
-  const [robots, seo] = await Promise.all([import('@/app/robots'), import('@/features/seo/metadata')]);
+  const [robots, seo] = await Promise.all([import('@/app/robots'), import('@/modules/seo/utils/metadata')]);
   return { robots: robots.default(), seo };
 }
 

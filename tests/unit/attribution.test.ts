@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { captureAttribution, readAttribution } from '@/features/leads/attribution';
+import { captureAttribution, readAttribution } from '@/modules/leads/utils/attribution';
 
 /** Minimal browser globals: the attribution helper only touches these. */
 function visit(url: string, referrer = '') {
