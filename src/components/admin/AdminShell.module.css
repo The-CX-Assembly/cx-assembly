@@ -537,6 +537,9 @@
 }
 
 .sidebar {
+  /* Above the page content, so the collapsed rail's hover labels aren't hidden behind cards. */
+  position: relative;
+  z-index: 30;
   height: 100%;
   overflow-y: auto;
   padding: 24px 16px 32px;
