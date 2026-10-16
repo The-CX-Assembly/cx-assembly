@@ -14,7 +14,13 @@ export const leadSchema = z.object({
     .url('Please enter a valid URL')
     .optional()
     .or(z.literal('')),
-  phone: z.string().trim().optional().or(z.literal('')),
+  // Digits plus the usual separators, with 10–15 digits in all (e.g. +91 98765 43210)
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'Mobile number is required')
+    .max(40)
+    .refine((v) => /^\+?[\d\s()-]+$/.test(v) && /^\d{10,15}$/.test(v.replace(/\D/g, '')), 'Please enter a valid mobile number'),
   message: z.string().trim().optional().or(z.literal('')),
   honeypot: z.string().max(0, 'Spam detected').optional().or(z.literal('')),
 });

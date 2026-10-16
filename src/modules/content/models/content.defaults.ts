@@ -71,7 +71,7 @@ export const defaultContent: SiteContent = {
     ],
     closing: 'No pressure to always have an answer. Just a willingness to contribute when it matters.',
     ctaText: 'Apply to Join',
-    note: 'Membership is curated for eligible senior brand-side CX leaders.',
+    note: 'The community is curated for eligible senior brand-side CX leaders.',
   },
   forPartners: {
     badge: 'For Partners',

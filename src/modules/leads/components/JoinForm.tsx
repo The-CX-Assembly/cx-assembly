@@ -13,6 +13,7 @@ const FIELDS = [
   { name: 'designation', label: 'Designation', type: 'text', placeholder: 'Head of CX', autoComplete: 'organization-title' },
   { name: 'company', label: 'Company', type: 'text', placeholder: 'Company name', autoComplete: 'organization' },
   { name: 'email', label: 'Work email', type: 'email', placeholder: 'name@company.com', autoComplete: 'email' },
+  { name: 'phone', label: 'Mobile number', type: 'tel', placeholder: '+91 98765 43210', autoComplete: 'tel' },
 ] as const;
 
 /** Only mounted once the dialog opens, so it always renders in the browser. */

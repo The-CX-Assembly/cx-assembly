@@ -7,7 +7,7 @@ import { captureAttribution } from '../utils/attribution';
 const JoinModalContext = createContext<{ openJoin: (source: string) => void }>({ openJoin: () => {} });
 
 /**
- * Site-wide membership popup. Any <JoinButton> opens it, and so does a URL
+ * Site-wide community application popup. Any <JoinButton> opens it, and so does a URL
  * ending in #join (kept so older links and bookmarks still work). The button's
  * `source` is saved with the lead so the inbox shows which CTA converted.
  */
@@ -69,7 +69,7 @@ export function JoinModalProvider({ children }: { children: React.ReactNode }) {
           </div>
 
           <h2 id="join-title" className="h-lg" style={{ marginTop: 'clamp(32px, 6vh, 64px)' }}>
-            Membership Application Form
+            Community Application Form
           </h2>
           <p className="lede" style={{ marginTop: 16 }}>
             Only for brand side CX Heads.

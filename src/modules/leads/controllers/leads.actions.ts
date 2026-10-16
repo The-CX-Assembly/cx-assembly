@@ -88,8 +88,7 @@ export async function submitLead(
 
   return {
     success: true,
-    message:
-      'Thank you for submitting your application! The CX Assembly curates each membership carefully and our team will get in touch with you shortly.',
+    message: 'The CX Assembly curates each application carefully and our team will get in touch with you shortly.',
   };
 }
 
