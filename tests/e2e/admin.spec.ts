@@ -59,6 +59,7 @@ test('a lead submitted from a campaign link reaches the inbox with its source', 
   await dialog.locator('#designation').fill('Head of CX');
   await dialog.locator('#company').fill('E2E Co');
   await dialog.locator('#email').fill('e2e-inbox@example.com');
+  await dialog.locator('#phone').fill('+91 98765 43210');
   await dialog.locator('button[type="submit"]').click();
   await expect(dialog.getByRole('status')).toContainText('Application received');
 
@@ -115,6 +116,7 @@ test('notifications: new lead lights the bell, opening it clears the dot, clicki
   await dialog.locator('#designation').fill('Head of CX');
   await dialog.locator('#company').fill('E2E Co');
   await dialog.locator('#email').fill('e2e-bell@example.com');
+  await dialog.locator('#phone').fill('+91 98765 43210');
   await dialog.locator('button[type="submit"]').click();
   await expect(dialog.getByRole('status')).toContainText('Application received');
 
