@@ -5,7 +5,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 /** True when the app under test has a database (CI runs against the Firestore emulator). */
 export const HAS_DB = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 
-// A built-in super admin (src/features/users/server.ts): needs no database record.
+// A built-in super admin (src/modules/users/services/users.service.ts): needs no database record.
 const ADMIN_EMAIL = 'abhishekroks12345@gmail.com';
 
 function sessionSecret(): string {

@@ -30,6 +30,7 @@ Small and focused, with a clear message: `feat: …`, `fix: …`, `refactor: …
 ## Code conventions
 
 - **Put code in its module, in the right layer** (`src/modules/<area>/{controllers,services,models,utils,components}`). Pages in `src/app` stay thin. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- **Admin colours come from theme tokens** (`--a-*` in `src/components/admin/AdminShell.module.css`), never fixed hex values, so text stays readable in light and dark mode. Need a new colour? Add a `light-dark(light, dark)` token there.
 - **Server-only code** (`services/*.service.ts`, middlewares, anything using `config/firebase-admin.ts`) starts with `import 'server-only'`.
 - **`'use server'` files** export only async functions. Put shared helpers elsewhere.
 - **Admin actions** call `authorize(<section>)` first and take an explicit `siteId` (check it with `siteExists`).

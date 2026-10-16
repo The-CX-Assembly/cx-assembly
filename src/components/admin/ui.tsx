@@ -152,13 +152,14 @@ export function Tabs<T extends string>({
 
 export type Tone = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'gray';
 
+// Theme tokens from AdminShell.module.css, so badges read well in light and dark mode.
 export const TONES: Record<Tone, { bg: string; fg: string }> = {
-  blue: { bg: '#EEF3FF', fg: '#2F6BFF' },
-  green: { bg: '#ECFDF3', fg: '#15803D' },
-  red: { bg: '#FEF2F2', fg: '#B91C1C' },
-  amber: { bg: '#FFF7E6', fg: '#B45309' },
-  violet: { bg: '#F2EEFF', fg: '#6D4DF2' },
-  gray: { bg: '#F1F3F7', fg: '#4B5068' },
+  blue: { bg: 'var(--a-tone-blue-bg)', fg: 'var(--a-tone-blue)' },
+  green: { bg: 'var(--a-tone-green-bg)', fg: 'var(--a-tone-green)' },
+  red: { bg: 'var(--a-tone-red-bg)', fg: 'var(--a-tone-red)' },
+  amber: { bg: 'var(--a-tone-amber-bg)', fg: 'var(--a-tone-amber)' },
+  violet: { bg: 'var(--a-tone-violet-bg)', fg: 'var(--a-tone-violet)' },
+  gray: { bg: 'var(--a-tone-gray-bg)', fg: 'var(--a-tone-gray)' },
 };
 
 export const toneStyle = (tone: Tone) => ({ '--bg': TONES[tone].bg, '--fg': TONES[tone].fg }) as React.CSSProperties;

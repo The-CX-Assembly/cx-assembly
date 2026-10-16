@@ -6,7 +6,6 @@ import { hasAdminCredentials } from '@/config/firebase-admin';
 import { siteIdOf } from '@/modules/sites/models/site.constants';
 import SitesManager from '@/modules/sites/components/SitesManager';
 import { PageHeader } from '@/components/admin/ui';
-import { IconGlobe } from '@/components/admin/AdminIcons';
 import ui from '@/components/admin/ui.module.css';
 
 /** The address other websites call, as seen by this request (works on any domain). */
@@ -26,13 +25,7 @@ export default async function AdminSitesPage() {
 
   return (
     <div className={ui.page}>
-      <PageHeader
-        eyebrow="Super admin"
-        icon={<IconGlobe size={14} />}
-        title="Websites"
-        count={sites.length}
-        description="Every website managed from this dashboard. Each gets an API key to send its form submissions here and fetch the content you edit."
-      />
+      <PageHeader title="Websites" count={sites.length} />
       <SitesManager sites={sites} leadCounts={leadCounts} baseUrl={baseUrl} canWrite={hasAdminCredentials()} />
     </div>
   );

@@ -12,4 +12,6 @@ export interface AdminUser {
   createdBy?: string;
   updatedAt?: string;
   lastLoginAt?: string;
+  /** When they last opened the notifications bell. */
+  notificationsSeenAt?: string;
 }

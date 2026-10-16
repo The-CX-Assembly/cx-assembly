@@ -20,7 +20,7 @@ function hostOf(url?: string) {
 function Counter({ length, limit }: { length: number; limit: number }) {
   const over = length > limit;
   return (
-    <span style={{ color: over ? '#B45309' : undefined }}>
+    <span style={{ color: over ? 'var(--a-warn)' : undefined }}>
       {length}/{limit} characters{over ? ' · Google may cut this short' : ''}
     </span>
   );
@@ -85,7 +85,8 @@ export default function SettingsManager({
 
             <div className={cx(ui.section, ui.full)}>
               <span className={ui.sectionLabel}>Preview in Google</span>
-              <div className={ui.details} style={{ display: 'block', background: 'var(--a-surface)' }}>
+              {/* Google's own colours on white, in light and dark mode alike. */}
+              <div className={ui.details} style={{ display: 'block', background: '#FFFFFF' }}>
                 <span style={{ display: 'block', fontSize: '0.75rem', color: '#4D5156' }}>{host}</span>
                 <span
                   style={{

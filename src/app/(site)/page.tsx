@@ -138,7 +138,7 @@ export default async function HomePage() {
 
             <InView className="why-body" threshold={0.3}>
               <p className="why-conclusion">
-                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="why-conclusion__mark" />
+                <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="why-conclusion__mark" />
                 <span className="why-conclusion__text">{whyWeExist.conclusion}</span>
               </p>
             </InView>

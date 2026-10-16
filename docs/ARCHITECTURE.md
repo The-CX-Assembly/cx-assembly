@@ -90,7 +90,7 @@ Who may import what:
 | `settings/general` | CX Assembly SEO title, description, links | Edited in Settings. |
 | `sites/{siteId}` | Registered websites | Name, URL, allowed origins, features, **hashed** API key. |
 | `sites/{siteId}/{siteContent,leaders,settings}` | Content of other websites | Same shapes as CX Assembly's top-level collections. |
-| `adminUsers/{email}` | Admin access | Role, sections, active. Built-in super admins are defined in `modules/users/services/users.service.ts`. |
+| `adminUsers/{email}` | Admin access | Role, sections, active, `notificationsSeenAt` (last time they opened the bell). Built-in super admins are defined in `modules/users/services/users.service.ts`. |
 
 Other names kept for the same reason as `leaders`: the admin permission key `'leaders'` (in `adminUsers.sections`), the site feature key `'leaders'` (in `sites.modules`) and the Storage folders `uploads/leaders`.
 
@@ -108,6 +108,8 @@ All server access goes through the Admin SDK (`src/config/firebase-admin.ts`), w
 
 **Admin sign-in:** Firebase Auth (Google or email/password) in the browser, then `completeSignIn` verifies the ID token. If the email has access, the server sets a signed, HttpOnly session cookie (`middlewares/auth.middleware.ts`). Every admin page and action re-checks access, so removing a user takes effect immediately.
 
+**Notifications (admin bell):** every lead with status *New* is a notification (`modules/leads/services/notifications.service.ts`). Opening the bell stores `notificationsSeenAt` for that admin, which clears the red dot until a newer lead arrives; the list itself empties only as leads are reviewed. Clicking one opens `/admin/leads?lead=<id>` with that lead's details, without changing its status. The shell re-checks every minute while the tab is visible.
+
 **Other websites** call `/api/v1/content` and `/api/v1/leads` with their API key (`x-api-key`), see `middlewares/api-key.middleware.ts`. The site a lead belongs to always comes from the key, never from the request body.
 
 ## Multi-site hub
@@ -115,6 +117,12 @@ All server access goes through the Admin SDK (`src/config/firebase-admin.ts`), w
 - The **website switcher** (admin header) stores the selected site in a cookie (`modules/sites/services/admin-site.service.ts`). Content, Settings, Speakers and the Dashboard follow it; **All websites** combines leads and stats.
 - Server actions receive the `siteId` explicitly and check it exists (`siteExists`), so a save always goes to the site the editor was opened for.
 - CX Assembly (`DEFAULT_SITE_ID = 'cx-assembly'`) keeps its original top-level collections; other sites live under `sites/{siteId}/…` (`siteCollection()` picks the right one).
+
+## Admin light & dark mode
+
+- Every admin colour is a token in `components/admin/AdminShell.module.css` written as `light-dark(light, dark)`; the shell's `color-scheme` picks one. The login page has its own `--l-*` tokens.
+- The choice (Light / Dark / System, in the profile menu) is saved in the `cx_admin_theme` cookie (`components/admin/theme.ts`), so the server renders the right theme on the first paint. *System* follows the computer.
+- The public website has no dark mode.
 
 ## Videos & PDFs
 
