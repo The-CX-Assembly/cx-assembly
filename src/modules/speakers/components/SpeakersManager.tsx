@@ -11,7 +11,7 @@ import {
   IconLinkedIn,
   IconPlus,
   IconSearch,
-  IconStar,
+  IconMic,
   IconTrash,
   IconUpload,
 } from '@/components/admin/AdminIcons';
@@ -231,7 +231,7 @@ export default function SpeakersManager({ siteId, initialSpeakers }: { siteId: s
         <div className={ui.panelScroll}>
           {visible.length === 0 ? (
             <EmptyState
-              icon={speakers.length ? <IconSearch size={22} /> : <IconStar size={22} />}
+              icon={speakers.length ? <IconSearch size={22} /> : <IconMic size={22} />}
               title={speakers.length ? 'No speakers match' : 'No speakers yet'}
             >
               {speakers.length ? 'Try a different search or filter.' : 'Add your first CMO Speaker to show them on the website.'}

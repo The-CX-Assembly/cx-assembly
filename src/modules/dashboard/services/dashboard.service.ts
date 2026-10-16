@@ -3,7 +3,7 @@ import { cache } from 'react';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { getAdminDb } from '@/config/firebase-admin';
 import { siteCollection } from '@/modules/sites/services/sites.service';
-import { DEFAULT_SITE_ID, siteIdOf } from '@/modules/sites/models/site.constants';
+import { DEFAULT_SITE_ID } from '@/modules/sites/models/site.constants';
 import { sampleSpeakers } from '@/modules/content/models/content.defaults';
 import { InterestType, Lead, LeadSource, LeadStatus } from '@/modules/leads/models/lead.model';
 
@@ -31,13 +31,6 @@ export interface PipelineSlice {
 export interface MixSlice {
   type: InterestType;
   count: number;
-}
-
-export interface ShellLead {
-  id: string;
-  name: string;
-  meta: string;
-  status: LeadStatus;
 }
 
 /** All leads, newest first. Cached so the layout and page share one query per request. */
@@ -271,19 +264,6 @@ function sourcesFor(leads: Lead[]): SourceBreakdown {
       landing: rank(leads, LABEL.landing),
     },
   };
-}
-
-/** `siteNames` labels each lead with its website; pass it only when there's more than one. */
-export function buildShellLeads(leads: Lead[], siteNames?: Map<string, string>, now = Date.now()): ShellLead[] {
-  return leads.slice(0, 6).map((lead) => {
-    const site = siteNames?.get(siteIdOf(lead));
-    return {
-      id: lead.id,
-      name: lead.fullName,
-      meta: site ? `${site} · ${timeAgo(lead.createdAt, now)}` : timeAgo(lead.createdAt, now),
-      status: lead.status,
-    };
-  });
 }
 
 export function buildDashboard(leads: Lead[], now = new Date()) {

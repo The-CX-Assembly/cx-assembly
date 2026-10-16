@@ -514,6 +514,23 @@
   background: var(--a-surface-2);
 }
 
+/* Arrived since the bell was last opened. */
+.notifUnseen {
+  position: relative;
+  background: var(--a-primary-soft);
+}
+
+.notifUnseen::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--a-primary);
+}
+
 .notifText strong {
   color: var(--a-text);
   font-weight: 600;

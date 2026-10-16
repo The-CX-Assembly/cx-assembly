@@ -90,7 +90,7 @@ Who may import what:
 | `settings/general` | CX Assembly SEO title, description, links | Edited in Settings. |
 | `sites/{siteId}` | Registered websites | Name, URL, allowed origins, features, **hashed** API key. |
 | `sites/{siteId}/{siteContent,leaders,settings}` | Content of other websites | Same shapes as CX Assembly's top-level collections. |
-| `adminUsers/{email}` | Admin access | Role, sections, active. Built-in super admins are defined in `modules/users/services/users.service.ts`. |
+| `adminUsers/{email}` | Admin access | Role, sections, active, `notificationsSeenAt` (last time they opened the bell). Built-in super admins are defined in `modules/users/services/users.service.ts`. |
 
 Other names kept for the same reason as `leaders`: the admin permission key `'leaders'` (in `adminUsers.sections`), the site feature key `'leaders'` (in `sites.modules`) and the Storage folders `uploads/leaders`.
 
@@ -107,6 +107,8 @@ All server access goes through the Admin SDK (`src/config/firebase-admin.ts`), w
 4. If saving fails, the visitor sees an error, never a false "Application received".
 
 **Admin sign-in:** Firebase Auth (Google or email/password) in the browser, then `completeSignIn` verifies the ID token. If the email has access, the server sets a signed, HttpOnly session cookie (`middlewares/auth.middleware.ts`). Every admin page and action re-checks access, so removing a user takes effect immediately.
+
+**Notifications (admin bell):** every lead with status *New* is a notification (`modules/leads/services/notifications.service.ts`). Opening the bell stores `notificationsSeenAt` for that admin, which clears the red dot until a newer lead arrives; the list itself empties only as leads are reviewed. Clicking one opens `/admin/leads?lead=<id>` with that lead's details, without changing its status. The shell re-checks every minute while the tab is visible.
 
 **Other websites** call `/api/v1/content` and `/api/v1/leads` with their API key (`x-api-key`), see `middlewares/api-key.middleware.ts`. The site a lead belongs to always comes from the key, never from the request body.
 

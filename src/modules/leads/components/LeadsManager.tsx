@@ -55,11 +55,14 @@ type StatusFilter = 'all' | LeadStatus;
 export default function LeadsManager({
   initialLeads,
   initialSearch = '',
+  initialLead = '',
   initialSite = ALL_SITES,
   sites,
 }: {
   initialLeads: Lead[];
   initialSearch?: string;
+  /** Opens this lead's details on arrival (from a notification). */
+  initialLead?: string;
   initialSite?: string;
   sites: { id: string; name: string }[];
 }) {
@@ -68,7 +71,12 @@ export default function LeadsManager({
   const [siteFilter, setSiteFilter] = useState<string>(initialSite);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialLead || null);
+  const closeLead = () => {
+    setSelectedId(null);
+    // Drop ?lead= so a reload doesn't reopen it (Next.js keeps its router in sync).
+    if (window.location.search.includes('lead=')) window.history.replaceState(null, '', window.location.pathname);
+  };
   const [updating, setUpdating] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [now] = useState(() => Date.now());
@@ -349,7 +357,7 @@ export default function LeadsManager({
       {selected && (
         <Drawer
           label={`Lead: ${selected.fullName}`}
-          onClose={() => setSelectedId(null)}
+          onClose={closeLead}
           title={
             <span className={ui.person}>
               <Avatar name={selected.fullName} size="lg" />
@@ -363,7 +371,7 @@ export default function LeadsManager({
           }
           footer={
             <>
-              <button type="button" className={ui.btnGhost} onClick={() => setSelectedId(null)}>
+              <button type="button" className={ui.btnGhost} onClick={closeLead}>
                 Close
               </button>
               <a className={ui.btnPrimary} href={`mailto:${selected.email}`}>

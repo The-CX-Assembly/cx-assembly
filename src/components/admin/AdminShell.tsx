@@ -8,7 +8,8 @@ import { selectAdminSite } from '@/modules/sites/controllers/sites.actions';
 import { ALL_SITES } from '@/modules/sites/models/site.constants';
 import type { SiteModule } from '@/modules/sites/models/site.model';
 import { logoutAdminAction } from '@/modules/auth/controllers/auth.actions';
-import type { ShellLead } from '@/modules/dashboard/services/dashboard.service';
+import { markNotificationsSeen, refreshNotifications } from '@/modules/leads/controllers/notifications.actions';
+import { hasUnseen, type NotificationFeed } from '@/modules/leads/models/notification.model';
 import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/modules/auth/models/access.model';
 import {
   IconBell,
@@ -26,7 +27,7 @@ import {
   IconSettings,
   IconShield,
   IconSidebar,
-  IconStar,
+  IconMic,
   IconVideo,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
@@ -47,9 +48,8 @@ interface AdminShellProps {
   sites: ShellSite[];
   /** The website being managed; null means all websites. */
   siteId: string | null;
-  newLeadsCount: number;
   speakerCount: number;
-  newLeads: ShellLead[];
+  notifications: NotificationFeed;
   children: React.ReactNode;
 }
 
@@ -71,9 +71,8 @@ export default function AdminShell({
   user,
   sites,
   siteId,
-  newLeadsCount,
   speakerCount,
-  newLeads,
+  notifications,
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
@@ -86,6 +85,18 @@ export default function AdminShell({
   const [tabsFit, setTabsFit] = useState(Infinity);
   const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
+
+  // The bell. Starts from the server; refreshed in the background (below) and
+  // replaced whenever the server sends a newer copy (e.g. after a status change).
+  const [feed, setFeed] = useState(notifications);
+  const [feedFromServer, setFeedFromServer] = useState(notifications);
+  if (feedFromServer !== notifications) {
+    setFeedFromServer(notifications);
+    setFeed(notifications);
+  }
+  // Leads newer than this are highlighted while the bell is open.
+  const [highlightAfter, setHighlightAfter] = useState('');
+  const unseen = hasUnseen(feed);
 
   const tabsRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
@@ -169,6 +180,36 @@ export default function AdminShell({
     };
   }, [menu]);
 
+  // Check for new leads every minute while the admin is on screen, and right
+  // away when they come back to the tab.
+  const watchLeads = canAccess(user, 'leads');
+  useEffect(() => {
+    if (!watchLeads) return;
+    const check = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const fresh = await refreshNotifications().catch(() => null);
+      if (fresh) setFeed(fresh);
+    };
+    const timer = window.setInterval(check, 60_000);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, [watchLeads]);
+
+  const toggleNotifications = () => {
+    if (menu === 'notifications') return setMenu(null);
+    setMenu('notifications');
+    setHighlightAfter(feed.seenAt ?? '');
+    if (!unseen) return;
+    // Opening the bell counts as seeing these: the red dot goes away until a newer lead arrives.
+    setFeed((f) => ({ ...f, seenAt: f.items[0]?.createdAt ?? f.seenAt }));
+    markNotificationsSeen()
+      .then((at) => at && setFeed((f) => ({ ...f, seenAt: at })))
+      .catch(() => {});
+  };
+
   const isSuperadmin = user.role === 'superadmin';
   const site = sites.find((s) => s.id === siteId) ?? null;
   // CMO Speaker profiles only exist on websites that use them.
@@ -184,8 +225,8 @@ export default function AdminShell({
 
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
-    { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
-    { label: 'CMO Speakers', href: '/admin/speakers', icon: IconStar, section: 'leaders' as const, badge: speakerCount },
+    { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: feed.count, hot: unseen },
+    { label: 'CMO Speakers', href: '/admin/speakers', icon: IconMic, section: 'leaders' as const, badge: speakerCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Videos & PDFs', href: '/admin/media', icon: IconVideo, section: 'media' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
@@ -391,27 +432,27 @@ export default function AdminShell({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  onClick={() => setMenu(menu === 'notifications' ? null : 'notifications')}
-                  aria-label={`Notifications${newLeadsCount ? `, ${newLeadsCount} new applications` : ''}`}
+                  onClick={toggleNotifications}
+                  aria-label={`Notifications${feed.count ? `, ${feed.count} waiting for review` : ''}${unseen ? ', new since you last looked' : ''}`}
                   aria-expanded={menu === 'notifications'}
                 >
                   <IconBell size={20} />
-                  {newLeadsCount > 0 && <span className={styles.bellDot} />}
+                  {unseen && <span className={styles.bellDot} />}
                 </button>
                 {menu === 'notifications' && (
                   <div className={`${styles.dropdown} ${styles.dropdownWide}`} role="menu">
                     <div className={styles.dropdownHead}>
                       <strong>Notifications</strong>
-                      <span>{newLeadsCount} new</span>
+                      <span>{feed.count} waiting for review</span>
                     </div>
-                    {newLeads.length === 0 ? (
+                    {feed.items.length === 0 ? (
                       <p className={styles.dropdownEmpty}>You&apos;re all caught up.</p>
                     ) : (
-                      newLeads.map((lead, i) => (
+                      feed.items.map((lead, i) => (
                         <Link
                           key={lead.id}
-                          href={`/admin/leads?q=${encodeURIComponent(lead.name)}`}
-                          className={styles.notifItem}
+                          href={`/admin/leads?lead=${encodeURIComponent(lead.id)}`}
+                          className={`${styles.notifItem} ${lead.createdAt > highlightAfter ? styles.notifUnseen : ''}`}
                           style={{ '--i': i } as React.CSSProperties}
                           onClick={() => setMenu(null)}
                           role="menuitem"
@@ -420,7 +461,7 @@ export default function AdminShell({
                             {initials(lead.name)}
                           </span>
                           <span className={styles.notifText}>
-                            <strong>{lead.name}</strong> submitted an application
+                            <strong>{lead.name}</strong> {lead.kind === 'pdf' ? 'downloaded a PDF' : 'submitted an application'}
                             <small>{lead.meta}</small>
                           </span>
                         </Link>
