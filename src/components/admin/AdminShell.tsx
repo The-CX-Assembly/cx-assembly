@@ -81,7 +81,9 @@ export default function AdminShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Desktop sidebar starts as an icon-only rail.
   const [collapsed, setCollapsed] = useState(true);
-  const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | null>(null);
+  const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | 'more' | null>(null);
+  // How many top tabs fit; the rest go under "More".
+  const [tabsFit, setTabsFit] = useState(Infinity);
   const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -89,6 +91,8 @@ export default function AdminShell({
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const siteMenuRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
 
   // Only <main> scrolls (not the window), so start each page at the top ourselves.
@@ -96,7 +100,34 @@ export default function AdminShell({
     mainRef.current?.scrollTo(0, 0);
   }, [pathname]);
 
-  // Slide the tab underline under the active tab (and keep it there on resize).
+  // Show as many top tabs as fit in one line (less room when the sidebar is open);
+  // the rest go under "More". Widths come from a hidden copy of every tab.
+  useLayoutEffect(() => {
+    const nav = tabsRef.current;
+    const measure = measureRef.current;
+    if (!nav || !measure) return;
+
+    const fit = () => {
+      const widths = Array.from(measure.children, (el) => (el as HTMLElement).offsetWidth);
+      const moreWidth = widths.pop() ?? 0; // the last copy is the More button
+      const gap = parseFloat(getComputedStyle(nav).columnGap) || 0;
+      const available = nav.clientWidth;
+      const all = widths.reduce((sum, w) => sum + w, 0) + gap * (widths.length - 1);
+      if (all <= available) return setTabsFit(widths.length);
+      let used = moreWidth;
+      let count = 0;
+      while (count < widths.length && used + gap + widths[count] <= available) used += gap + widths[count++];
+      setTabsFit(count);
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [user.role, siteId]);
+
+  // Slide the tab underline under the active tab, or under More when the
+  // current page is inside it (and keep it there on resize).
   useLayoutEffect(() => {
     const nav = tabsRef.current;
     const indicator = indicatorRef.current;
@@ -108,23 +139,24 @@ export default function AdminShell({
         indicator.style.opacity = '0';
         return;
       }
+      const box = active.getBoundingClientRect();
       indicator.style.opacity = '1';
-      indicator.style.width = `${active.offsetWidth}px`;
-      indicator.style.transform = `translateX(${active.offsetLeft}px)`;
+      indicator.style.width = `${box.width}px`;
+      indicator.style.transform = `translateX(${box.left - nav.getBoundingClientRect().left}px)`;
     };
 
     place();
     const observer = new ResizeObserver(place);
     observer.observe(nav);
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [pathname, tabsFit]);
 
   // Close open dropdowns on outside click or Escape.
   useEffect(() => {
     if (!menu) return;
     const onPointer = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (!menuRef.current?.contains(target) && !siteMenuRef.current?.contains(target)) setMenu(null);
+      if (![menuRef, siteMenuRef, moreRef].some((ref) => ref.current?.contains(target))) setMenu(null);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenu(null);
@@ -146,6 +178,9 @@ export default function AdminShell({
     (section === 'users' || section === 'sites' ? isSuperadmin : canAccess(user, section)) && hasModule(section);
   const canLeads = allowed('leads');
   const topTabs = TOP_TABS.filter((tab) => allowed(tab.section));
+  const shownTabs = topTabs.slice(0, tabsFit);
+  const moreTabs = topTabs.slice(tabsFit);
+  const moreActive = moreTabs.some((tab) => isActive(pathname, tab.href));
 
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
@@ -287,7 +322,7 @@ export default function AdminShell({
           )}
 
           <nav className={styles.tabs} ref={tabsRef} aria-label="Primary">
-            {topTabs.map((tab) => {
+            {shownTabs.map((tab) => {
               const active = isActive(pathname, tab.href);
               return (
                 <Link
@@ -301,7 +336,53 @@ export default function AdminShell({
                 </Link>
               );
             })}
+            {moreTabs.length > 0 && (
+              <div className={`${styles.dropdownWrap} ${styles.moreWrap}`} ref={moreRef}>
+                <button
+                  type="button"
+                  data-active={moreActive}
+                  className={`${styles.tab} ${moreActive ? styles.tabActive : ''}`}
+                  onClick={() => setMenu(menu === 'more' ? null : 'more')}
+                  aria-expanded={menu === 'more'}
+                  aria-haspopup="menu"
+                >
+                  More
+                  <IconChevronDown size={16} className={`${styles.chevron} ${menu === 'more' ? styles.chevronOpen : ''}`} />
+                </button>
+                {menu === 'more' && (
+                  <div className={`${styles.dropdown} ${styles.dropdownMore}`} role="menu">
+                    {moreTabs.map((tab) => {
+                      const active = isActive(pathname, tab.href);
+                      return (
+                        <Link
+                          key={tab.href}
+                          href={tab.href}
+                          role="menuitem"
+                          className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                          aria-current={active ? 'page' : undefined}
+                          onClick={() => setMenu(null)}
+                        >
+                          {tab.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
             <span ref={indicatorRef} className={styles.tabIndicator} aria-hidden="true" />
+            {/* Hidden copy of every tab (and More) used to measure what fits. */}
+            <div ref={measureRef} className={styles.tabsMeasure} aria-hidden="true">
+              {topTabs.map((tab) => (
+                <span key={tab.href} className={`${styles.tab} ${styles.tabActive}`}>
+                  {tab.label}
+                </span>
+              ))}
+              <span className={`${styles.tab} ${styles.tabActive}`}>
+                More
+                <IconChevronDown size={16} />
+              </span>
+            </div>
           </nav>
 
           <div className={styles.actions} ref={menuRef}>

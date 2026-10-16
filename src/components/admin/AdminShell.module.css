@@ -209,19 +209,30 @@
 /* Tabs with sliding underline */
 .tabs {
   position: relative;
+  /* Takes the free space between the website switcher and the icons; tabs that
+     don't fit move under "More" (see AdminShell). */
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  margin: 0 auto;
   height: 100%;
 }
 
 .tab {
   position: relative;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
+  gap: 4px;
   height: 100%;
   padding: 0 14px;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--a-muted);
@@ -236,6 +247,28 @@
 .tabActive {
   color: var(--a-primary);
   font-weight: 600;
+}
+
+.moreWrap {
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.dropdownMore {
+  width: 220px;
+  top: 100%;
+}
+
+.tabsMeasure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .tabIndicator {
@@ -524,6 +557,17 @@
 .menuDanger:hover {
   background: rgba(242, 95, 92, 0.08);
   color: var(--a-coral);
+}
+
+.menuItemActive,
+.menuItemActive:hover {
+  background: var(--a-primary-soft);
+  color: var(--a-primary);
+  font-weight: 600;
+}
+
+.tab .chevron {
+  color: inherit;
 }
 
 /* ---------- Body ---------- */
@@ -892,7 +936,7 @@
   .tab { padding: 0 10px; font-size: 0.875rem; }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1024px) {
   .tabs { display: none; }
   .actions { margin-left: auto; }
   .tabs + .actions { margin-left: auto; }
