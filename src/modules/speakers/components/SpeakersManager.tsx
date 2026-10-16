@@ -193,7 +193,7 @@ export default function SpeakersManager({ siteId, initialSpeakers }: { siteId: s
   const set = (patch: Draft) => setDraft((prev) => ({ ...prev, ...patch }));
 
   return (
-    <div className={ui.page}>
+    <div className={cx(ui.page, ui.pageFill)} data-page-fill>
       <PageHeader
         title="CMO Speakers"
         count={speakers.length}
@@ -228,118 +228,120 @@ export default function SpeakersManager({ siteId, initialSpeakers }: { siteId: s
           {!canReorder && <span className={cx(ui.count, ui.toolbarEnd)}>Clear the search and filter to reorder</span>}
         </div>
 
-        {visible.length === 0 ? (
-          <EmptyState
-            icon={speakers.length ? <IconSearch size={22} /> : <IconStar size={22} />}
-            title={speakers.length ? 'No speakers match' : 'No speakers yet'}
-          >
-            {speakers.length ? 'Try a different search or filter.' : 'Add your first CMO Speaker to show them on the website.'}
-          </EmptyState>
-        ) : (
-          <div className={ui.tableWrap}>
-            <table className={cx(ui.table, ui.tableCards)}>
-              <thead>
-                <tr>
-                  <th>Speaker</th>
-                  <th>Role</th>
-                  <th>Order</th>
-                  <th>On website</th>
-                  <th className={ui.alignRight}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageSpeakers.map((speaker, i) => {
-                  // Position in the full list: ordering spans pages.
-                  const idx = speakers.indexOf(speaker);
-                  const busy = busyId === speaker.id;
-                  return (
-                    <tr key={speaker.id} style={{ '--i': i } as React.CSSProperties}>
-                      <td>
-                        <div className={ui.person}>
-                          <Avatar name={speaker.name} src={speaker.photoUrl || undefined} />
-                          <div>
-                            <span className={ui.cellMain}>{speaker.name}</span>
-                            <span className={ui.cellSub}>
-                              {speaker.linkedinUrl ? (
-                                <a className={ui.link} href={speaker.linkedinUrl} target="_blank" rel="noopener noreferrer">
-                                  <IconLinkedIn size={12} /> LinkedIn
-                                </a>
-                              ) : (
-                                'No LinkedIn'
-                              )}
-                            </span>
+        <div className={ui.panelScroll}>
+          {visible.length === 0 ? (
+            <EmptyState
+              icon={speakers.length ? <IconSearch size={22} /> : <IconStar size={22} />}
+              title={speakers.length ? 'No speakers match' : 'No speakers yet'}
+            >
+              {speakers.length ? 'Try a different search or filter.' : 'Add your first CMO Speaker to show them on the website.'}
+            </EmptyState>
+          ) : (
+            <div className={ui.tableWrap}>
+              <table className={cx(ui.table, ui.tableCards)}>
+                <thead>
+                  <tr>
+                    <th>Speaker</th>
+                    <th>Role</th>
+                    <th>Order</th>
+                    <th>On website</th>
+                    <th className={ui.alignRight}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageSpeakers.map((speaker, i) => {
+                    // Position in the full list: ordering spans pages.
+                    const idx = speakers.indexOf(speaker);
+                    const busy = busyId === speaker.id;
+                    return (
+                      <tr key={speaker.id} style={{ '--i': i } as React.CSSProperties}>
+                        <td>
+                          <div className={ui.person}>
+                            <Avatar name={speaker.name} src={speaker.photoUrl || undefined} />
+                            <div>
+                              <span className={ui.cellMain}>{speaker.name}</span>
+                              <span className={ui.cellSub}>
+                                {speaker.linkedinUrl ? (
+                                  <a className={ui.link} href={speaker.linkedinUrl} target="_blank" rel="noopener noreferrer">
+                                    <IconLinkedIn size={12} /> LinkedIn
+                                  </a>
+                                ) : (
+                                  'No LinkedIn'
+                                )}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className={ui.cardFull}>
-                        <span className={ui.cellMain} style={{ fontWeight: 500 }}>
-                          {speaker.designation || '—'}
-                        </span>
-                        <span className={ui.cellSub}>{speaker.company}</span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <span className={ui.count} style={{ minWidth: 24, fontWeight: 700 }}>
-                            {idx + 1}
+                        </td>
+                        <td className={ui.cardFull}>
+                          <span className={ui.cellMain} style={{ fontWeight: 500 }}>
+                            {speaker.designation || '—'}
                           </span>
-                          <button
-                            type="button"
-                            className={ui.btnIcon}
-                            disabled={!canReorder || idx === 0}
-                            onClick={() => moveSpeaker(idx, 'up')}
-                            aria-label={`Move ${speaker.name} up`}
-                            title="Move up"
-                          >
-                            <IconArrowUp size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            className={ui.btnIcon}
-                            disabled={!canReorder || idx === speakers.length - 1}
-                            onClick={() => moveSpeaker(idx, 'down')}
-                            aria-label={`Move ${speaker.name} down`}
-                            title="Move down"
-                          >
-                            <IconArrowDown size={16} />
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Switch
-                            checked={speaker.published}
-                            disabled={busy}
-                            onChange={() => togglePublished(speaker)}
-                            label={speaker.published ? `Hide ${speaker.name} from the website` : `Show ${speaker.name} on the website`}
-                          />
-                          <Badge tone={speaker.published ? 'green' : 'gray'} dot>
-                            {speaker.published ? 'Live' : 'Draft'}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className={cx(ui.alignRight, ui.cardFull)}>
-                        <div style={{ display: 'inline-flex', gap: 6 }}>
-                          <button type="button" className={cx(ui.btnGhost, ui.btnSm)} onClick={() => setDraft(speaker)} disabled={busy}>
-                            <IconEdit size={14} /> Edit
-                          </button>
-                          <button
-                            type="button"
-                            className={cx(confirmDelete === speaker.id ? ui.btnDanger : ui.btnGhostDanger, ui.btnSm)}
-                            onClick={() => handleDelete(speaker)}
-                            disabled={busy}
-                            aria-label={confirmDelete === speaker.id ? `Confirm removing ${speaker.name}` : `Delete ${speaker.name}`}
-                          >
-                            <IconTrash size={14} /> {confirmDelete === speaker.id ? 'Confirm' : 'Delete'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                          <span className={ui.cellSub}>{speaker.company}</span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <span className={ui.count} style={{ minWidth: 24, fontWeight: 700 }}>
+                              {idx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              className={ui.btnIcon}
+                              disabled={!canReorder || idx === 0}
+                              onClick={() => moveSpeaker(idx, 'up')}
+                              aria-label={`Move ${speaker.name} up`}
+                              title="Move up"
+                            >
+                              <IconArrowUp size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              className={ui.btnIcon}
+                              disabled={!canReorder || idx === speakers.length - 1}
+                              onClick={() => moveSpeaker(idx, 'down')}
+                              aria-label={`Move ${speaker.name} down`}
+                              title="Move down"
+                            >
+                              <IconArrowDown size={16} />
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Switch
+                              checked={speaker.published}
+                              disabled={busy}
+                              onChange={() => togglePublished(speaker)}
+                              label={speaker.published ? `Hide ${speaker.name} from the website` : `Show ${speaker.name} on the website`}
+                            />
+                            <Badge tone={speaker.published ? 'green' : 'gray'} dot>
+                              {speaker.published ? 'Live' : 'Draft'}
+                            </Badge>
+                          </div>
+                        </td>
+                        <td className={cx(ui.alignRight, ui.cardFull)}>
+                          <div style={{ display: 'inline-flex', gap: 6 }}>
+                            <button type="button" className={cx(ui.btnGhost, ui.btnSm)} onClick={() => setDraft(speaker)} disabled={busy}>
+                              <IconEdit size={14} /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              className={cx(confirmDelete === speaker.id ? ui.btnDanger : ui.btnGhostDanger, ui.btnSm)}
+                              onClick={() => handleDelete(speaker)}
+                              disabled={busy}
+                              aria-label={confirmDelete === speaker.id ? `Confirm removing ${speaker.name}` : `Delete ${speaker.name}`}
+                            >
+                              <IconTrash size={14} /> {confirmDelete === speaker.id ? 'Confirm' : 'Delete'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         <Pagination page={currentPage} pageSize={PAGE_SIZE} total={visible.length} onChange={setPage} noun="speakers" />
       </section>
 
