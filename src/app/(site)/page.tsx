@@ -116,7 +116,7 @@ export default async function HomePage() {
             <div className="hero__visual">
               <div className="hero__panel">
                 <HeroArt />
-                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="hero__panel-mark" priority aria-hidden="true" />
+                <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="hero__panel-mark" priority aria-hidden="true" />
                 {settings.credibilityText && (
                   <p className="hero__chip">
                     <span className="hero__pulse hero__pulse--light" aria-hidden="true" />
@@ -154,7 +154,7 @@ export default async function HomePage() {
                 {marqueeRun.map((item, i) => (
                   <span key={i} style={{ display: 'contents' }}>
                     <span className="marquee__item">{item}</span>
-                    <Image src="/brand/cx-mark-navy.png" alt="" width={916} height={508} className="marquee__sep" />
+                    <Image src="/brand/cx-mark-navy.png" alt="" width={800} height={420} className="marquee__sep" />
                   </span>
                 ))}
               </div>
@@ -199,7 +199,7 @@ export default async function HomePage() {
 
             <InView className="why-body" threshold={0.3}>
               <p className="why-conclusion">
-                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="why-conclusion__mark" />
+                <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="why-conclusion__mark" />
                 <span className="why-conclusion__text">{whyWeExist.conclusion}</span>
               </p>
             </InView>
@@ -356,7 +356,7 @@ export default async function HomePage() {
             </div>
 
             <div className="principle reveal">
-              <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="principle__mark" aria-hidden="true" />
+              <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="principle__mark" aria-hidden="true" />
               {principleLead && <p className="eyebrow">{principleLead}</p>}
               <p className="principle__text">{principleBody}</p>
             </div>
@@ -390,7 +390,7 @@ export default async function HomePage() {
                 </figure>
 
                 <div className="founder-panel__body">
-                  <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="founder-panel__mark" aria-hidden="true" />
+                  <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="founder-panel__mark" aria-hidden="true" />
                   <p className="founder-panel__intro">{aboutUs.paragraph2}</p>
 
                   {/* paragraph3, shown whole: the lead-in small, the belief large */}

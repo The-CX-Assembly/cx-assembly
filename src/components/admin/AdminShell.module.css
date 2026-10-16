@@ -137,6 +137,29 @@
   transition: transform 0.4s var(--a-ease);
 }
 
+/* The logo comes in navy (light mode) and cream (dark mode). */
+.logoOnDark {
+  display: none;
+}
+
+.shell[data-theme='dark'] .logoOnLight {
+  display: none;
+}
+
+.shell[data-theme='dark'] .logoOnDark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell[data-theme='system'] .logoOnLight {
+    display: none;
+  }
+
+  .shell[data-theme='system'] .logoOnDark {
+    display: block;
+  }
+}
+
 .brandLink:hover .brandMark {
   transform: rotate(-8deg) scale(1.05);
 }

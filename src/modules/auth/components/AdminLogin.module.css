@@ -84,10 +84,32 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: #FFFFFF;
-  border: 1px solid #ECEEF3;
-  padding: 6px;
+  background: var(--l-input);
+  border: 1px solid var(--l-border);
   box-shadow: 0 6px 14px -8px rgba(30, 34, 53, 0.35);
+}
+
+/* The logo comes in navy (light mode) and cream (dark mode). */
+.logoOnDark {
+  display: none;
+}
+
+.page[data-theme='dark'] .logoOnLight {
+  display: none;
+}
+
+.page[data-theme='dark'] .logoOnDark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page[data-theme='system'] .logoOnLight {
+    display: none;
+  }
+
+  .page[data-theme='system'] .logoOnDark {
+    display: block;
+  }
 }
 
 .badge {

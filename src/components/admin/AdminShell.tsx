@@ -278,7 +278,9 @@ export default function AdminShell({
           </button>
           <Link href="/admin" className={styles.brandLink}>
             <span className={styles.brandMark}>
-              <Image src="/brand/logo.png" alt="" fill sizes="38px" style={{ objectFit: 'contain' }} />
+              {/* Navy logo in light mode, cream in dark mode (see .logoOnLight / .logoOnDark). */}
+              <Image src="/brand/cx-logo-navy.png" alt="" fill sizes="40px" className={styles.logoOnLight} style={{ objectFit: 'contain', padding: 5 }} />
+              <Image src="/brand/cx-logo-light.png" alt="" fill sizes="40px" className={styles.logoOnDark} style={{ objectFit: 'contain', padding: 5 }} />
             </span>
             <span className={styles.brandText}>
               <strong>CX Assembly</strong>
