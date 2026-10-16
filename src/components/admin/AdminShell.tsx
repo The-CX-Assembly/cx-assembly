@@ -8,7 +8,8 @@ import { selectAdminSite } from '@/modules/sites/controllers/sites.actions';
 import { ALL_SITES } from '@/modules/sites/models/site.constants';
 import type { SiteModule } from '@/modules/sites/models/site.model';
 import { logoutAdminAction } from '@/modules/auth/controllers/auth.actions';
-import type { ShellLead } from '@/modules/dashboard/services/dashboard.service';
+import { markNotificationsSeen, refreshNotifications } from '@/modules/leads/controllers/notifications.actions';
+import { hasUnseen, type NotificationFeed } from '@/modules/leads/models/notification.model';
 import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/modules/auth/models/access.model';
 import {
   IconBell,
@@ -26,10 +27,14 @@ import {
   IconSettings,
   IconShield,
   IconSidebar,
-  IconStar,
+  IconMic,
+  IconMonitor,
+  IconMoon,
+  IconSun,
   IconVideo,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
+import { THEMES, saveTheme, type AdminTheme } from './theme';
 
 /** "The CX Assembly" → "CA" */
 const siteInitials = (name: string) => initials(name.replace(/^the\s+/i, ''));
@@ -47,9 +52,10 @@ interface AdminShellProps {
   sites: ShellSite[];
   /** The website being managed; null means all websites. */
   siteId: string | null;
-  newLeadsCount: number;
   speakerCount: number;
-  newLeads: ShellLead[];
+  notifications: NotificationFeed;
+  /** Light, dark, or follow the computer (from the cx_admin_theme cookie). */
+  theme: AdminTheme;
   children: React.ReactNode;
 }
 
@@ -71,9 +77,9 @@ export default function AdminShell({
   user,
   sites,
   siteId,
-  newLeadsCount,
   speakerCount,
-  newLeads,
+  notifications,
+  theme: initialTheme,
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
@@ -81,16 +87,70 @@ export default function AdminShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Desktop sidebar starts as an icon-only rail.
   const [collapsed, setCollapsed] = useState(true);
-  const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | null>(null);
+  const [menu, setMenu] = useState<'notifications' | 'user' | 'site' | 'more' | null>(null);
+  // How many top tabs fit; the rest go under "More".
+  const [tabsFit, setTabsFit] = useState(Infinity);
   const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
+  const [theme, setTheme] = useState(initialTheme);
+  const chooseTheme = (next: AdminTheme) => {
+    setTheme(next);
+    saveTheme(next);
+  };
+
+  // The bell. Starts from the server; refreshed in the background (below) and
+  // replaced whenever the server sends a newer copy (e.g. after a status change).
+  const [feed, setFeed] = useState(notifications);
+  const [feedFromServer, setFeedFromServer] = useState(notifications);
+  if (feedFromServer !== notifications) {
+    setFeedFromServer(notifications);
+    setFeed(notifications);
+  }
+  // Leads newer than this are highlighted while the bell is open.
+  const [highlightAfter, setHighlightAfter] = useState('');
+  const unseen = hasUnseen(feed);
 
   const tabsRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const siteMenuRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
-  // Slide the tab underline under the active tab (and keep it there on resize).
+  // Only <main> scrolls (not the window), so start each page at the top ourselves.
+  useLayoutEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [pathname]);
+
+  // Show as many top tabs as fit in one line (less room when the sidebar is open);
+  // the rest go under "More". Widths come from a hidden copy of every tab.
+  useLayoutEffect(() => {
+    const nav = tabsRef.current;
+    const measure = measureRef.current;
+    if (!nav || !measure) return;
+
+    const fit = () => {
+      const widths = Array.from(measure.children, (el) => (el as HTMLElement).offsetWidth);
+      const moreWidth = widths.pop() ?? 0; // the last copy is the More button
+      const gap = parseFloat(getComputedStyle(nav).columnGap) || 0;
+      const available = nav.clientWidth;
+      const all = widths.reduce((sum, w) => sum + w, 0) + gap * (widths.length - 1);
+      if (all <= available) return setTabsFit(widths.length);
+      let used = moreWidth;
+      let count = 0;
+      while (count < widths.length && used + gap + widths[count] <= available) used += gap + widths[count++];
+      setTabsFit(count);
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [user.role, siteId]);
+
+  // Slide the tab underline under the active tab, or under More when the
+  // current page is inside it (and keep it there on resize).
   useLayoutEffect(() => {
     const nav = tabsRef.current;
     const indicator = indicatorRef.current;
@@ -102,23 +162,24 @@ export default function AdminShell({
         indicator.style.opacity = '0';
         return;
       }
+      const box = active.getBoundingClientRect();
       indicator.style.opacity = '1';
-      indicator.style.width = `${active.offsetWidth}px`;
-      indicator.style.transform = `translateX(${active.offsetLeft}px)`;
+      indicator.style.width = `${box.width}px`;
+      indicator.style.transform = `translateX(${box.left - nav.getBoundingClientRect().left}px)`;
     };
 
     place();
     const observer = new ResizeObserver(place);
     observer.observe(nav);
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [pathname, tabsFit]);
 
   // Close open dropdowns on outside click or Escape.
   useEffect(() => {
     if (!menu) return;
     const onPointer = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (!menuRef.current?.contains(target) && !siteMenuRef.current?.contains(target)) setMenu(null);
+      if (![menuRef, siteMenuRef, moreRef].some((ref) => ref.current?.contains(target))) setMenu(null);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenu(null);
@@ -131,6 +192,36 @@ export default function AdminShell({
     };
   }, [menu]);
 
+  // Check for new leads every minute while the admin is on screen, and right
+  // away when they come back to the tab.
+  const watchLeads = canAccess(user, 'leads');
+  useEffect(() => {
+    if (!watchLeads) return;
+    const check = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const fresh = await refreshNotifications().catch(() => null);
+      if (fresh) setFeed(fresh);
+    };
+    const timer = window.setInterval(check, 60_000);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, [watchLeads]);
+
+  const toggleNotifications = () => {
+    if (menu === 'notifications') return setMenu(null);
+    setMenu('notifications');
+    setHighlightAfter(feed.seenAt ?? '');
+    if (!unseen) return;
+    // Opening the bell counts as seeing these: the red dot goes away until a newer lead arrives.
+    setFeed((f) => ({ ...f, seenAt: f.items[0]?.createdAt ?? f.seenAt }));
+    markNotificationsSeen()
+      .then((at) => at && setFeed((f) => ({ ...f, seenAt: at })))
+      .catch(() => {});
+  };
+
   const isSuperadmin = user.role === 'superadmin';
   const site = sites.find((s) => s.id === siteId) ?? null;
   // CMO Speaker profiles only exist on websites that use them.
@@ -140,11 +231,14 @@ export default function AdminShell({
     (section === 'users' || section === 'sites' ? isSuperadmin : canAccess(user, section)) && hasModule(section);
   const canLeads = allowed('leads');
   const topTabs = TOP_TABS.filter((tab) => allowed(tab.section));
+  const shownTabs = topTabs.slice(0, tabsFit);
+  const moreTabs = topTabs.slice(tabsFit);
+  const moreActive = moreTabs.some((tab) => isActive(pathname, tab.href));
 
   const sideNav = [
     { label: 'Dashboard', href: '/admin', icon: IconGrid, section: 'dashboard' as const },
-    { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: newLeadsCount, hot: newLeadsCount > 0 },
-    { label: 'CMO Speakers', href: '/admin/speakers', icon: IconStar, section: 'leaders' as const, badge: speakerCount },
+    { label: 'Leads Inbox', href: '/admin/leads', icon: IconInbox, section: 'leads' as const, badge: feed.count, hot: unseen },
+    { label: 'CMO Speakers', href: '/admin/speakers', icon: IconMic, section: 'leaders' as const, badge: speakerCount },
     { label: 'Content Editor', href: '/admin/content', icon: IconEdit, section: 'content' as const },
     { label: 'Videos & PDFs', href: '/admin/media', icon: IconVideo, section: 'media' as const },
     { label: 'Settings', href: '/admin/settings', icon: IconSettings, section: 'settings' as const },
@@ -169,7 +263,7 @@ export default function AdminShell({
   };
 
   return (
-    <div className={`${styles.shell} ${collapsed ? styles.collapsed : ''}`}>
+    <div className={`${styles.shell} ${collapsed ? styles.collapsed : ''}`} data-theme={theme}>
       {/* ---------- Top bar ---------- */}
       <header className={styles.header}>
         <div className={styles.brand}>
@@ -281,7 +375,7 @@ export default function AdminShell({
           )}
 
           <nav className={styles.tabs} ref={tabsRef} aria-label="Primary">
-            {topTabs.map((tab) => {
+            {shownTabs.map((tab) => {
               const active = isActive(pathname, tab.href);
               return (
                 <Link
@@ -295,7 +389,53 @@ export default function AdminShell({
                 </Link>
               );
             })}
+            {moreTabs.length > 0 && (
+              <div className={`${styles.dropdownWrap} ${styles.moreWrap}`} ref={moreRef}>
+                <button
+                  type="button"
+                  data-active={moreActive}
+                  className={`${styles.tab} ${moreActive ? styles.tabActive : ''}`}
+                  onClick={() => setMenu(menu === 'more' ? null : 'more')}
+                  aria-expanded={menu === 'more'}
+                  aria-haspopup="menu"
+                >
+                  More
+                  <IconChevronDown size={16} className={`${styles.chevron} ${menu === 'more' ? styles.chevronOpen : ''}`} />
+                </button>
+                {menu === 'more' && (
+                  <div className={`${styles.dropdown} ${styles.dropdownMore}`} role="menu">
+                    {moreTabs.map((tab) => {
+                      const active = isActive(pathname, tab.href);
+                      return (
+                        <Link
+                          key={tab.href}
+                          href={tab.href}
+                          role="menuitem"
+                          className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                          aria-current={active ? 'page' : undefined}
+                          onClick={() => setMenu(null)}
+                        >
+                          {tab.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
             <span ref={indicatorRef} className={styles.tabIndicator} aria-hidden="true" />
+            {/* Hidden copy of every tab (and More) used to measure what fits. */}
+            <div ref={measureRef} className={styles.tabsMeasure} aria-hidden="true">
+              {topTabs.map((tab) => (
+                <span key={tab.href} className={`${styles.tab} ${styles.tabActive}`}>
+                  {tab.label}
+                </span>
+              ))}
+              <span className={`${styles.tab} ${styles.tabActive}`}>
+                More
+                <IconChevronDown size={16} />
+              </span>
+            </div>
           </nav>
 
           <div className={styles.actions} ref={menuRef}>
@@ -304,27 +444,27 @@ export default function AdminShell({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  onClick={() => setMenu(menu === 'notifications' ? null : 'notifications')}
-                  aria-label={`Notifications${newLeadsCount ? `, ${newLeadsCount} new applications` : ''}`}
+                  onClick={toggleNotifications}
+                  aria-label={`Notifications${feed.count ? `, ${feed.count} waiting for review` : ''}${unseen ? ', new since you last looked' : ''}`}
                   aria-expanded={menu === 'notifications'}
                 >
                   <IconBell size={20} />
-                  {newLeadsCount > 0 && <span className={styles.bellDot} />}
+                  {unseen && <span className={styles.bellDot} />}
                 </button>
                 {menu === 'notifications' && (
                   <div className={`${styles.dropdown} ${styles.dropdownWide}`} role="menu">
                     <div className={styles.dropdownHead}>
                       <strong>Notifications</strong>
-                      <span>{newLeadsCount} new</span>
+                      <span>{feed.count} waiting for review</span>
                     </div>
-                    {newLeads.length === 0 ? (
+                    {feed.items.length === 0 ? (
                       <p className={styles.dropdownEmpty}>You&apos;re all caught up.</p>
                     ) : (
-                      newLeads.map((lead, i) => (
+                      feed.items.map((lead, i) => (
                         <Link
                           key={lead.id}
-                          href={`/admin/leads?q=${encodeURIComponent(lead.name)}`}
-                          className={styles.notifItem}
+                          href={`/admin/leads?lead=${encodeURIComponent(lead.id)}`}
+                          className={`${styles.notifItem} ${lead.createdAt > highlightAfter ? styles.notifUnseen : ''}`}
                           style={{ '--i': i } as React.CSSProperties}
                           onClick={() => setMenu(null)}
                           role="menuitem"
@@ -333,7 +473,7 @@ export default function AdminShell({
                             {initials(lead.name)}
                           </span>
                           <span className={styles.notifText}>
-                            <strong>{lead.name}</strong> submitted an application
+                            <strong>{lead.name}</strong> {lead.kind === 'pdf' ? 'downloaded a PDF' : 'submitted an application'}
                             <small>{lead.meta}</small>
                           </span>
                         </Link>
@@ -369,6 +509,28 @@ export default function AdminShell({
                       {user.email}
                     </span>
                     <span className={styles.roleTag}>{ROLE_LABEL[user.role]}</span>
+                  </div>
+                  <div className={styles.themeRow}>
+                    <span>Appearance</span>
+                    <div className={styles.themeSwitch} role="radiogroup" aria-label="Appearance">
+                      {THEMES.map(({ value, label }) => {
+                        const Icon = value === 'light' ? IconSun : value === 'dark' ? IconMoon : IconMonitor;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={theme === value}
+                            aria-label={label}
+                            title={value === 'system' ? 'Match my computer' : label}
+                            className={`${styles.themeOption} ${theme === value ? styles.themeOptionOn : ''}`}
+                            onClick={() => chooseTheme(value)}
+                          >
+                            <Icon size={15} />
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   {site?.url && (
                     <a href={site.url} target="_blank" rel="noopener noreferrer" className={styles.menuItem} role="menuitem">
@@ -441,7 +603,7 @@ export default function AdminShell({
           />
         )}
 
-        <main className={styles.main}>
+        <main ref={mainRef} className={styles.main}>
           {/* Keyed by route so every page gets the entrance animation. */}
           <div key={pathname} className={styles.page}>
             {children}

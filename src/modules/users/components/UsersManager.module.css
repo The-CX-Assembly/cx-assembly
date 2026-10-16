@@ -1,7 +1,7 @@
 /* Theme tokens (--a-*) come from AdminShell.module.css. */
 
 .page {
-  padding: 28px 32px 56px;
+  padding: 24px 32px 56px;
   max-width: 1280px;
   margin: 0 auto;
 }
@@ -9,7 +9,7 @@
 .head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
@@ -28,7 +28,6 @@
 }
 
 .head h1 {
-  margin-top: 6px;
   font-size: clamp(1.5rem, 2.4vw, 1.875rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -49,9 +48,9 @@
   margin-bottom: 20px;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid #FDE68A;
-  background: #FFFBEB;
-  color: #92400E;
+  border: 1px solid var(--a-warn-border);
+  background: var(--a-warn-bg);
+  color: var(--a-warn-text);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -87,7 +86,7 @@
   height: 44px;
   padding: 0 20px;
   border: 0;
-  color: #FFFFFF;
+  color: var(--a-on-accent);
   background: linear-gradient(135deg, #4C82FF, #2F6BFF);
   box-shadow: 0 8px 18px -8px rgba(47, 107, 255, 0.7);
 }
@@ -113,17 +112,17 @@
 }
 
 .ghostDanger:hover:not(:disabled) {
-  border-color: #FECACA;
-  background: #FEF2F2;
-  color: #DC2626;
+  border-color: var(--a-danger-border);
+  background: var(--a-danger-bg);
+  color: var(--a-danger);
 }
 
 .danger {
   height: 34px;
   padding: 0 12px;
   border: 0;
-  background: #EF4444;
-  color: #FFFFFF;
+  background: var(--a-danger-solid);
+  color: var(--a-on-accent);
   font-size: 0.8125rem;
   animation: pop 0.25s var(--a-ease);
 }
@@ -219,7 +218,7 @@
 
 .search:focus-within {
   background: var(--a-surface);
-  border-color: rgba(47, 107, 255, 0.35);
+  border-color: var(--a-primary-ring);
   box-shadow: 0 0 0 4px var(--a-primary-soft);
 }
 
@@ -277,7 +276,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  color: #FFFFFF;
+  color: var(--a-on-accent);
   font-size: 0.8125rem;
   font-weight: 700;
   box-shadow: 0 0 0 3px var(--a-surface), 0 6px 14px -6px rgba(30, 34, 53, 0.45);
@@ -332,8 +331,8 @@
 }
 
 .role {
-  background: rgba(139, 108, 255, 0.12);
-  color: #6D4DF2;
+  background: var(--a-tone-violet-bg);
+  color: var(--a-tone-violet);
   font-weight: 600;
 }
 
@@ -349,8 +348,8 @@
 }
 
 .builtIn {
-  background: #FFF7ED;
-  color: #C2410C;
+  background: var(--a-tone-amber-bg);
+  color: var(--a-tone-amber);
 }
 
 .meta {
@@ -378,11 +377,11 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #D4D7E0;
+  background: var(--a-switch-off);
 }
 
 .statusOn {
-  color: #15803D;
+  color: var(--a-success-text);
 }
 
 .statusOn::before {
@@ -415,7 +414,7 @@
   z-index: 90;
   display: flex;
   justify-content: flex-end;
-  background: rgba(30, 34, 53, 0.35);
+  background: var(--a-overlay);
   backdrop-filter: blur(3px);
   animation: fade 0.25s ease;
 }
@@ -490,9 +489,9 @@
 .formError {
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid #FECACA;
-  background: #FEF2F2;
-  color: #B91C1C;
+  border: 1px solid var(--a-danger-border);
+  background: var(--a-danger-bg);
+  color: var(--a-danger-text);
   font-size: 0.8125rem;
 }
 
@@ -519,7 +518,7 @@
 }
 
 .field input:focus {
-  border-color: rgba(47, 107, 255, 0.5);
+  border-color: var(--a-primary-ring);
   box-shadow: 0 0 0 4px var(--a-primary-soft);
 }
 
@@ -583,7 +582,7 @@
 
 .roleCardOn {
   border-color: var(--a-primary);
-  background: rgba(47, 107, 255, 0.05);
+  background: var(--a-primary-soft);
 }
 
 .roleCard:has(input:focus-visible) {
@@ -605,7 +604,7 @@
 
 .roleCardOn .roleIcon {
   background: var(--a-primary);
-  color: #FFFFFF;
+  color: var(--a-on-accent);
 }
 
 .sectionList {
@@ -631,8 +630,8 @@
 }
 
 .sectionOn {
-  border-color: rgba(47, 107, 255, 0.3);
-  background: rgba(47, 107, 255, 0.04);
+  border-color: var(--a-primary-ring);
+  background: var(--a-primary-soft);
 }
 
 .sectionItem input {
@@ -670,7 +669,7 @@
   width: 38px;
   height: 22px;
   border-radius: 999px;
-  background: #D4D7E0;
+  background: var(--a-switch-off);
   transition: background 0.25s;
 }
 
@@ -736,7 +735,7 @@
   padding: 12px 18px;
   border-radius: 14px;
   background: var(--a-text);
-  color: #FFFFFF;
+  color: var(--a-on-accent);
   font-size: 0.875rem;
   line-height: 1.45;
   box-shadow: var(--a-shadow-lg);

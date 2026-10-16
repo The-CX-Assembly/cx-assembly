@@ -104,3 +104,53 @@ test('videos & PDFs start switched off', async ({ page }) => {
     await expect(page.getByRole('switch', { name })).toHaveAttribute('aria-checked', 'false');
   }
 });
+
+test('notifications: new lead lights the bell, opening it clears the dot, clicking opens the lead', async ({ page }) => {
+  test.skip(!HAS_DB, 'Needs a database (runs in CI against the Firestore emulator).');
+
+  const name = `E2E Bell ${Date.now()}`;
+  await page.goto('/');
+  const dialog = await openJoinForm(page, 'hero');
+  await dialog.locator('#fullName').fill(name);
+  await dialog.locator('#designation').fill('Head of CX');
+  await dialog.locator('#company').fill('E2E Co');
+  await dialog.locator('#email').fill('e2e-bell@example.com');
+  await dialog.locator('button[type="submit"]').click();
+  await expect(dialog.getByRole('status')).toContainText('Application received');
+
+  await page.goto('/admin');
+  const bell = page.getByRole('button', { name: /^Notifications/ });
+  await expect(bell).toHaveAccessibleName(/new since you last looked/);
+
+  // Opening the bell lists the lead and clears the dot, also after a reload.
+  await bell.click();
+  const item = page.getByRole('menuitem', { name: new RegExp(name) });
+  await expect(item).toContainText('submitted an application');
+  await expect(bell).not.toHaveAccessibleName(/new since you last looked/);
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(bell).not.toHaveAccessibleName(/new since you last looked/);
+
+  // Clicking it opens that lead's details; its status stays New.
+  await bell.click();
+  await page.getByRole('menuitem', { name: new RegExp(name) }).click();
+  await expect(page).toHaveURL(/\/admin\/leads\?lead=/);
+  const panel = page.getByRole('dialog');
+  await expect(panel).toContainText(name);
+  await expect(panel.getByRole('radio', { name: 'New' })).toHaveAttribute('aria-checked', 'true');
+});
+
+test('appearance: the chosen theme is applied and remembered', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/admin');
+  const shell = page.locator('[data-theme]').first();
+  await expect(shell).toHaveAttribute('data-theme', 'system');
+
+  await page.getByRole('button', { name: /^Account menu/ }).click();
+  await page.getByRole('radio', { name: 'Dark' }).click();
+  await expect(shell).toHaveAttribute('data-theme', 'dark');
+  await expect(shell).toHaveCSS('background-color', 'rgb(14, 17, 23)');
+
+  await page.reload();
+  await expect(page.locator('[data-theme]').first()).toHaveAttribute('data-theme', 'dark');
+});

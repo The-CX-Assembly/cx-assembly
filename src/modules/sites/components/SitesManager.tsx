@@ -217,7 +217,7 @@ export default function SitesManager({
 
             {revealed?.siteId === s.id && (
               <div className={ui.keyBox} role="status">
-                <strong style={{ flexBasis: '100%', fontSize: '0.875rem', color: '#15803D' }}>
+                <strong style={{ flexBasis: '100%', fontSize: '0.875rem', color: 'var(--a-success-text)' }}>
                   Copy this key now. It won’t be shown again.
                 </strong>
                 <code>{revealed.key}</code>

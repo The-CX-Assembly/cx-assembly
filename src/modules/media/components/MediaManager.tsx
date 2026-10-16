@@ -244,10 +244,7 @@ export default function MediaManager({
   return (
     <div className={ui.page}>
       <PageHeader
-        eyebrow="Website"
-        icon={<IconVideo size={14} />}
         title="Videos & PDFs"
-        description="Add videos and downloadable PDFs. Nothing appears on the website until you switch it on."
         actions={
           canWrite &&
           (tab === 'pdfs' ? (
@@ -590,7 +587,7 @@ export default function MediaManager({
                     />
                   </div>
                 ) : (
-                  videoDraft.link && <span className={ui.fieldHint} style={{ color: '#B45309' }}>That doesn’t look like a YouTube or Vimeo video link.</span>
+                  videoDraft.link && <span className={ui.fieldHint} style={{ color: 'var(--a-warn)' }}>That doesn’t look like a YouTube or Vimeo video link.</span>
                 )}
               </>
             ) : (

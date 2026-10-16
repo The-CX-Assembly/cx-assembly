@@ -14,6 +14,7 @@ import {
 import { auth } from '@/config/firebase-client';
 import { completeSignIn, preparePasswordSetup } from '../controllers/auth.actions';
 import styles from './AdminLogin.module.css';
+import type { AdminTheme } from '@/components/admin/theme';
 
 type Pending = null | 'google' | 'password' | 'reset';
 
@@ -38,7 +39,7 @@ function messageFor(error: unknown) {
   return FIREBASE_ERRORS[code] ?? 'Sign-in failed. Please try again.';
 }
 
-export default function LoginForm() {
+export default function LoginForm({ theme }: { theme: AdminTheme }) {
   const [mode, setMode] = useState<'signin' | 'reset'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -113,7 +114,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-theme={theme}>
       <span className={`${styles.blob} ${styles.blobA}`} aria-hidden="true" />
       <span className={`${styles.blob} ${styles.blobB}`} aria-hidden="true" />
       <span className={`${styles.blob} ${styles.blobC}`} aria-hidden="true" />

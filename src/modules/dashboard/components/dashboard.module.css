@@ -123,7 +123,7 @@
 
 .btnPrimary {
   background: linear-gradient(135deg, #4C82FF, #2F6BFF);
-  color: #FFFFFF;
+  color: var(--a-on-accent);
   box-shadow: 0 8px 18px -8px rgba(47, 107, 255, 0.7);
 }
 
@@ -324,7 +324,8 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--c);
+  /* Accent text, darkened in light mode so pale accents (amber, orange) stay readable on white. */
+  color: light-dark(color-mix(in srgb, var(--c) 60%, #1E2235), var(--c));
 }
 
 .activityTitle strong {
@@ -500,7 +501,7 @@
   padding: 8px 14px;
   border-radius: 12px;
   background: linear-gradient(135deg, #A78BFA, #7C5CFF);
-  color: #FFFFFF;
+  color: var(--a-on-accent);
   box-shadow: 0 12px 24px -10px rgba(124, 92, 255, 0.8);
   pointer-events: none;
   white-space: nowrap;
@@ -707,7 +708,8 @@
 .radialPct {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--c);
+  /* Accent text, darkened in light mode so pale accents (amber, orange) stay readable on white. */
+  color: light-dark(color-mix(in srgb, var(--c) 60%, #1E2235), var(--c));
 }
 
 .ringWrap {
@@ -791,7 +793,8 @@
 }
 
 .viewAll:hover {
-  color: var(--c);
+  /* Accent text, darkened in light mode so pale accents (amber, orange) stay readable on white. */
+  color: light-dark(color-mix(in srgb, var(--c) 60%, #1E2235), var(--c));
 }
 
 .viewAll:hover::after {

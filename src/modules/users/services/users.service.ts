@@ -36,6 +36,7 @@ function builtInUser(email: string, stored?: Partial<StoredUser>): AdminUser {
     active: true,
     builtIn: true,
     lastLoginAt: stored?.lastLoginAt,
+    notificationsSeenAt: stored?.notificationsSeenAt,
   };
 }
 
@@ -67,6 +68,7 @@ export const getAdminUser = cache(async (rawEmail: string): Promise<AdminUser | 
     createdBy: stored.createdBy,
     updatedAt: stored.updatedAt,
     lastLoginAt: stored.lastLoginAt,
+    notificationsSeenAt: stored.notificationsSeenAt,
   };
 });
 
@@ -108,6 +110,23 @@ export async function recordLogin(email: string) {
       .set({ lastLoginAt: new Date().toISOString() }, { merge: true });
   } catch (e) {
     console.warn('Could not record login:', e);
+  }
+}
+
+/**
+ * Remembers when an admin last opened the notifications bell. Built-in super
+ * admins may have no record yet; anyone else must already have one, so this
+ * can never create access for a removed user.
+ */
+export async function setNotificationsSeen(email: string, builtIn: boolean, at: string) {
+  const db = getAdminDb();
+  if (!db) return;
+  const ref = db.collection(USERS_COLLECTION).doc(normalizeEmail(email));
+  try {
+    if (builtIn) await ref.set({ notificationsSeenAt: at }, { merge: true });
+    else await ref.update({ notificationsSeenAt: at });
+  } catch (e) {
+    console.warn('Could not record notifications seen:', e);
   }
 }
 
