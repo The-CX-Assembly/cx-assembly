@@ -227,7 +227,6 @@ img {
 }
 
 .eyebrow__num {
-  font-variant-numeric: tabular-nums;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
@@ -507,18 +506,52 @@ img {
 }
 
 /* =========================================================
-   Hero — type only, generous whitespace
+   Hero — type only, on a full-height light panel inset from the page edges
    ========================================================= */
 .hero {
-  position: relative;
-  padding-top: clamp(56px, 8vw, 128px);
-  padding-bottom: clamp(64px, 8vw, 120px);
-  border-bottom: 1px solid var(--rule);
+  padding: 0 clamp(8px, 1.2vw, 20px);
 }
 
+.hero__card {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - 84px - clamp(8px, 1.2vw, 20px));
+  border: 1px solid rgba(33, 50, 69, 0.08);
+  border-radius: clamp(20px, 2.4vw, 36px);
+  background: #FAFAF4;
+  overflow: hidden;
+}
+
+.hero__inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(48px, 8vh, 112px);
+  padding-block: clamp(32px, 5vh, 56px) clamp(40px, 7vh, 88px);
+}
+
+/* Dark band across the bottom of the panel for the copy and CTAs */
+.hero__band {
+  background: var(--ink);
+  color: var(--on-ink-muted);
+}
+
+.hero__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 32px;
+}
+
+.hero__launch { color: var(--muted); }
+
 .hero__title {
-  margin-top: clamp(24px, 3vw, 40px);
-  max-width: 16ch;
+  font-size: clamp(2.75rem, 6.8vw, 7.25rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--navy);
 }
 
 /* Each word rises out of its own mask */
@@ -533,21 +566,25 @@ img {
 .hw > span { display: inline-block; }
 
 .hero__foot {
-  margin-top: clamp(40px, 5vw, 72px);
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: 32px clamp(32px, 5vw, 96px);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px clamp(32px, 5vw, 96px);
+  align-items: center;
+  padding-block: clamp(28px, 3.4vw, 48px);
 }
 
-.hero__lede { max-width: 40rem; }
+.hero__lede {
+  max-width: 46ch;
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  line-height: 1.6;
+}
 
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px 32px;
+  gap: 16px 28px;
 }
 
 @media (max-width: 900px) {
@@ -556,7 +593,7 @@ img {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero__kicker { animation: rise 0.9s var(--ease) both; }
+  .hero__top { animation: rise 0.9s var(--ease) both; }
   .hw > span { animation: heroWord 0.9s calc(0.15s + var(--i) * 60ms) var(--ease) both; }
   .hero__foot { animation: rise 1s 0.6s var(--ease) both; }
 }
@@ -587,7 +624,6 @@ img {
 
 .row__num {
   font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
@@ -684,7 +720,6 @@ img {
   font-size: 0.75rem;
   letter-spacing: 0.18em;
   color: #A9BCD3;
-  font-variant-numeric: tabular-nums;
 }
 
 .ph__title {
@@ -759,7 +794,6 @@ img {
   font-size: clamp(1.75rem, 2.6vw, 2.5rem);
   font-weight: 300;
   letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
   color: rgba(250, 250, 244, 0.4);
   transition: color 0.3s ease;
 }
@@ -862,70 +896,107 @@ img {
   opacity: 0;
 }
 
-/* Story cards (Why We Exist): sticky, so each one stacks over the last while scrolling */
-.why-stack {
-  list-style: none;
+/* Why We Exist: sticky headline beside four statements whose words light up on scroll */
+.why-layout {
+  timeline-scope: --why;
   display: grid;
-  gap: clamp(20px, 2.4vw, 32px);
-  margin-top: clamp(40px, 5vw, 72px);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(32px, 6vw, 112px);
+  margin-top: clamp(28px, 3vw, 40px);
 }
 
-.why-card {
-  --card-bg: #FFFFFF;
-  --card-fg: var(--navy);
-  --card-muted: var(--muted);
-  --card-line: var(--rule);
-
+.why-aside {
   position: sticky;
-  top: calc(108px + var(--i, 0) * 20px);
+  top: 132px;
+  align-self: start;
+}
+
+.why-aside .why-head {
+  margin-top: 0;
+  max-width: 14ch;
+  font-size: clamp(2.125rem, 3.6vw, 3.5rem);
+}
+
+/* Fills top to bottom as the statements scroll by */
+.why-progress {
+  position: relative;
+  width: 2px;
+  height: clamp(96px, 12vw, 160px);
+  margin-top: clamp(32px, 4vw, 56px);
+  border-radius: 2px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.why-progress span {
+  position: absolute;
+  inset: 0;
+  background: var(--navy);
+  transform-origin: top;
+}
+
+.why-story {
+  list-style: none;
+  view-timeline-name: --why;
+}
+
+.why-step {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 16px clamp(24px, 3.4vw, 56px);
-  align-items: start;
-  min-height: clamp(240px, 22vw, 300px);
-  padding: clamp(28px, 3.6vw, 56px);
-  border: 1px solid var(--card-line);
-  border-radius: 28px;
-  background: var(--card-bg);
-  color: var(--card-fg);
-  box-shadow: 0 -16px 40px -30px rgba(12, 35, 57, 0.3);
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  padding-block: clamp(40px, 6vw, 88px);
+  border-top: 1px solid var(--rule);
 }
 
-.why-card--1 { --card-bg: var(--paper-2); }
+.why-step:first-child { padding-top: 0; border-top: 0; }
 
-.why-card--2,
-.why-card--3 {
-  --card-bg: var(--navy);
-  --card-fg: var(--on-ink);
-  --card-muted: rgba(250, 250, 244, 0.55);
-  --card-line: rgba(250, 250, 244, 0.1);
-}
-
-.why-card--3 { --card-bg: var(--ink); }
-
-.why-card__num {
+.why-step__num {
   padding-top: 0.7em;
   font-size: 0.9375rem;
-  font-weight: 500;
   letter-spacing: 0.06em;
-  color: var(--card-muted);
+  color: var(--muted);
 }
 
-.why-card__text {
-  max-width: 30ch;
-  font-size: clamp(1.5rem, 2.6vw, 2.375rem);
+.why-step__text {
+  font-size: clamp(1.625rem, 2.7vw, 2.625rem);
   font-weight: 500;
-  line-height: 1.22;
+  line-height: 1.25;
   letter-spacing: -0.02em;
+  color: var(--navy);
 }
 
-@media (max-width: 700px) {
-  .why-card {
-    top: calc(96px + var(--i, 0) * 12px);
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
+/* Words start faint and turn navy as they pass reading height (browsers with scroll timelines) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lw {
+      color: rgba(33, 50, 69, 0.16);
+      animation: wordLight linear both;
+      animation-timeline: view();
+      animation-range: cover 28% cover 42%;
+    }
+
+    .why-progress span {
+      animation: whyProgress linear both;
+      animation-timeline: --why;
+      animation-range: contain 0% contain 100%;
+    }
   }
-  .why-card__num { padding-top: 0; }
+}
+
+@keyframes wordLight {
+  to { color: var(--navy); }
+}
+
+@keyframes whyProgress {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@media (max-width: 900px) {
+  .why-layout { grid-template-columns: minmax(0, 1fr); }
+  .why-aside { position: static; }
+  .why-progress { display: none; }
+  .why-step { grid-template-columns: 36px minmax(0, 1fr); }
 }
 
 /* Navy band wipes in from the left, then its mark and text settle */
@@ -987,91 +1058,109 @@ img {
   flex-shrink: 0;
 }
 
-/* Outlined tiles with an accent segment on the top edge (For CX Leaders) */
-.tiles {
+/* What You Can Expect (For CX Leaders): numbered rows, navy fill sweeps in on hover */
+.expect {
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(14px, 1.6vw, 24px);
+  border-top: 1px solid var(--rule);
 }
 
-@media (max-width: 640px) {
-  .tiles { grid-template-columns: 1fr; }
-}
-
-.tile {
+.expect__row {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-height: clamp(180px, 15vw, 220px);
-  padding: clamp(22px, 2.4vw, 34px);
-  border: 1px solid var(--rule);
-  background: transparent;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  transition: background-color 0.4s var(--ease), border-color 0.4s var(--ease);
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 5fr) minmax(0, 7fr);
+  gap: 8px clamp(16px, 2vw, 28px);
+  align-items: baseline;
+  padding: clamp(20px, 2.2vw, 28px) clamp(12px, 1.4vw, 20px);
+  border-bottom: 1px solid var(--rule);
 }
 
-.tile::before {
+.expect__row::before {
   content: '';
   position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 34%;
-  height: 2px;
+  inset: 0;
+  z-index: -1;
   background: var(--navy);
-  transition: width 0.6s var(--ease);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.55s var(--ease);
 }
 
-.tile:hover { background: rgba(33, 50, 69, 0.03); border-color: rgba(33, 50, 69, 0.22); }
-.tile:hover::before { width: calc(100% + 2px); }
-
-.tile__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.expect__num {
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
 }
 
-.tile__title {
-  display: block;
-  font-size: clamp(1.25rem, 1.7vw, 1.625rem);
+.expect__title {
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
   font-weight: 500;
-  line-height: 1.18;
-  letter-spacing: -0.025em;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   color: var(--navy);
 }
 
-.tile__arrow {
-  flex-shrink: 0;
-  color: var(--muted);
-  transition: transform 0.4s var(--ease), color 0.3s ease;
-}
-
-.tile:hover .tile__arrow { transform: translate(3px, 3px); color: var(--navy); }
-
-.tile__text {
-  display: block;
-  margin-top: auto;
-  padding-top: 28px;
+.expect__text {
   font-size: 0.9375rem;
   line-height: 1.6;
 }
 
-.tile--cta {
-  cursor: pointer;
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--on-ink-muted);
+.expect__num,
+.expect__title,
+.expect__text { transition: color 0.4s var(--ease); }
+
+@media (hover: hover) {
+  .expect__row:hover::before { transform: scaleX(1); }
+  .expect__row:hover .expect__title { color: var(--on-ink); }
+  .expect__row:hover .expect__num,
+  .expect__row:hover .expect__text { color: var(--on-ink-muted); }
 }
 
-.tile--cta::before { background: var(--on-ink); }
-.tile--cta .tile__title,
-.tile--cta .tile__arrow { color: var(--on-ink); }
-.tile--cta:hover { background: var(--ink); border-color: var(--ink); }
-.tile--cta:hover .tile__arrow { transform: translateX(4px); color: var(--on-ink); }
+@media (max-width: 640px) {
+  .expect__row { grid-template-columns: 36px minmax(0, 1fr); }
+  .expect__text { grid-column: 2; }
+}
+
+.expect__cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 24px;
+  align-items: center;
+  width: 100%;
+  margin-top: clamp(24px, 3vw, 40px);
+  padding: clamp(24px, 2.6vw, 36px);
+  border: 0;
+  border-radius: 24px;
+  background: var(--navy);
+  color: var(--on-ink-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.4s var(--ease);
+}
+
+.expect__cta:hover { background: var(--ink); }
+
+.expect__cta-title {
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--on-ink);
+}
+
+.expect__cta-note {
+  grid-column: 1;
+  font-size: 0.9375rem;
+}
+
+.expect__cta svg {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--on-ink);
+  transition: transform 0.35s var(--ease);
+}
+
+.expect__cta:hover svg { transform: translateX(4px); }
 
 /* =========================================================
    Leaders — portraits, no card chrome
@@ -1390,7 +1479,6 @@ button.link-arrow { font-family: inherit; }
   display: block;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
   color: var(--on-ink-muted);
 }
 

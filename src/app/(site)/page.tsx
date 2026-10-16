@@ -66,30 +66,38 @@ export default async function HomePage() {
 
       <main>
         {/* ── HERO ─────────────────────────────────────────── */}
+        {/* Type-only hero: light headline area over a dark band holding the copy and CTAs */}
         <section className="hero">
-          <div className="wrap">
-            <p className="hero__kicker eyebrow">{hero.tagline}</p>
+          <div className="hero__card">
+            <div className="wrap hero__inner">
+              <div className="hero__top">
+                <p className="eyebrow">{hero.tagline}</p>
+                {settings.credibilityText && <p className="eyebrow hero__launch">{settings.credibilityText}</p>}
+              </div>
 
-            <h1 className="display hero__title">
-              {heroWords.map((word, i) => (
-                <Fragment key={i}>
-                  <span className="hw" style={{ '--i': i } as React.CSSProperties}>
-                    <span>{word}</span>
-                  </span>{' '}
-                </Fragment>
-              ))}
-            </h1>
+              <h1 className="hero__title">
+                {heroWords.map((word, i) => (
+                  <Fragment key={i}>
+                    <span className="hw" style={{ '--i': i } as React.CSSProperties}>
+                      <span>{word}</span>
+                    </span>{' '}
+                  </Fragment>
+                ))}
+              </h1>
+            </div>
 
-            <div className="hero__foot">
-              <p className="lede hero__lede">{hero.subheadline}</p>
-              <div className="hero__actions">
-                <JoinButton source="hero">
-                  {hero.ctaPrimaryText}
-                  <ArrowRight size={16} />
-                </JoinButton>
-                <Link href="/founding-50" className="link-arrow">
-                  {hero.ctaSecondaryText}
-                </Link>
+            <div className="hero__band section--ink">
+              <div className="wrap hero__foot">
+                <p className="hero__lede">{hero.subheadline}</p>
+                <div className="hero__actions">
+                  <JoinButton source="hero">
+                    {hero.ctaPrimaryText}
+                    <ArrowRight size={16} />
+                  </JoinButton>
+                  <Link href="/founding-50" className="link-arrow">
+                    {hero.ctaSecondaryText}
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -102,17 +110,31 @@ export default async function HomePage() {
               <Eyebrow num="01">{whyWeExist.badge}</Eyebrow>
             </div>
 
-            <RevealWords lines={sentenceLines(whyWeExist.headline)} className="why-head" />
+            {/* Headline stays put while the four statements scroll past; their words
+                light up as they reach reading height, and a line tracks progress */}
+            <div className="why-layout">
+              <div className="why-aside">
+                <RevealWords lines={sentenceLines(whyWeExist.headline)} className="why-head" />
+                <div className="why-progress" aria-hidden="true">
+                  <span />
+                </div>
+              </div>
 
-            {/* Story cards: each one slides up and stacks over the last, light to dark */}
-            <ol className="why-stack">
-              {whyBoxes.map((text, i) => (
-                <li key={i} className={`why-card why-card--${i % 4}`} style={{ '--i': i } as React.CSSProperties}>
-                  <span className="why-card__num">{String(i + 1).padStart(2, '0')}</span>
-                  <p className="why-card__text">{text}</p>
-                </li>
-              ))}
-            </ol>
+              <ol className="why-story">
+                {whyBoxes.map((text, i) => (
+                  <li key={i} className="why-step">
+                    <span className="why-step__num">{String(i + 1).padStart(2, '0')}</span>
+                    <p className="why-step__text">
+                      {text.split(/\s+/).map((word, j) => (
+                        <Fragment key={j}>
+                          <span className="lw">{word}</span>{' '}
+                        </Fragment>
+                      ))}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
             <InView className="why-body" threshold={0.3}>
               <p className="why-conclusion">
@@ -170,30 +192,25 @@ export default async function HomePage() {
                 <p className="eyebrow" style={{ marginBottom: 24 }}>
                   What You Can Expect
                 </p>
-                <ul className="tiles">
-                  {forLeaders.takeaways.map((item) => {
+                {/* Numbered rows; a navy fill sweeps across the row under the pointer */}
+                <ol className="expect">
+                  {forLeaders.takeaways.map((item, i) => {
                     const { title, text } = splitLabel(item);
                     return (
-                      <li key={item} className="tile reveal">
-                        <div className="tile__head">
-                          <h3 className="tile__title">{title}</h3>
-                        </div>
-                        {text && <p className="tile__text">{text}</p>}
+                      <li key={item} className="expect__row reveal">
+                        <span className="expect__num">{String(i + 1).padStart(2, '0')}</span>
+                        <h3 className="expect__title">{title}</h3>
+                        {text && <p className="expect__text">{text}</p>}
                       </li>
                     );
                   })}
-                  <li className="reveal" style={{ display: 'flex' }}>
-                    <JoinButton source="for-leaders-tile" className="tile tile--cta">
-                      <span className="tile__head">
-                        <span className="tile__title">{forLeaders.ctaText}</span>
-                        <span className="tile__arrow">
-                          <ArrowRight size={22} />
-                        </span>
-                      </span>
-                      <span className="tile__text">{forLeaders.note}</span>
-                    </JoinButton>
-                  </li>
-                </ul>
+                </ol>
+
+                <JoinButton source="for-leaders-tile" className="expect__cta reveal">
+                  <span className="expect__cta-title">{forLeaders.ctaText}</span>
+                  {forLeaders.note && <span className="expect__cta-note">{forLeaders.note}</span>}
+                  <ArrowRight size={22} />
+                </JoinButton>
               </div>
             </div>
           </div>

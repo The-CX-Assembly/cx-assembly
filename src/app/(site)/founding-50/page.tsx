@@ -48,7 +48,7 @@ export default async function Founding50Page() {
           <div className="wrap">
             <div className="section-head" style={{ paddingTop: 32, borderTop: '1px solid var(--rule)' }}>
               <h2 className="h-md">Meet the Founding CX Leaders</h2>
-              <p className="muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <p className="muted">
                 {String(speakers.length).padStart(2, '0')} / 50
               </p>
             </div>
