@@ -1211,7 +1211,7 @@ button.stat:hover {
 
 .sideList {
   position: sticky;
-  top: calc(var(--a-header) + 20px);
+  top: 20px;
   display: flex;
   flex-direction: column;
   gap: 2px;

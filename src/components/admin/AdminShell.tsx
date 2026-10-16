@@ -89,6 +89,12 @@ export default function AdminShell({
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const siteMenuRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Only <main> scrolls (not the window), so start each page at the top ourselves.
+  useLayoutEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [pathname]);
 
   // Slide the tab underline under the active tab (and keep it there on resize).
   useLayoutEffect(() => {
@@ -441,7 +447,7 @@ export default function AdminShell({
           />
         )}
 
-        <main className={styles.main}>
+        <main ref={mainRef} className={styles.main}>
           {/* Keyed by route so every page gets the entrance animation. */}
           <div key={pathname} className={styles.page}>
             {children}
