@@ -1,12 +1,12 @@
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
-import SpeakerCard from '@/features/speakers/components/SpeakerCard';
+import SpeakerCard from '@/modules/speakers/components/SpeakerCard';
 import { Accent, Eyebrow } from '@/components/site/Type';
-import { getSiteContent } from '@/features/content/server';
-import { getSpeakers } from '@/features/speakers/server';
+import { getSiteContent } from '@/modules/content/services/content.service';
+import { getSpeakers } from '@/modules/speakers/services/speakers.service';
 import { Metadata } from 'next';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.founding50);
 

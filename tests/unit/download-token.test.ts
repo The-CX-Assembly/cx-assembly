@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createDownloadToken, verifyDownloadToken } from '@/features/media/server';
+import { createDownloadToken, verifyDownloadToken } from '@/modules/media/services/media.service';
 
 const NOW = Date.UTC(2026, 9, 15, 12);
 

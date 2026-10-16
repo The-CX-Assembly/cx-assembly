@@ -4,12 +4,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { selectAdminSite } from '@/features/sites/actions';
-import { ALL_SITES } from '@/features/sites/constants';
-import type { SiteModule } from '@/types';
-import { logoutAdminAction } from '@/features/auth/actions';
-import type { ShellLead } from '@/features/dashboard/stats';
-import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/features/auth/sections';
+import { selectAdminSite } from '@/modules/sites/controllers/sites.actions';
+import { ALL_SITES } from '@/modules/sites/models/site.constants';
+import type { SiteModule } from '@/modules/sites/models/site.model';
+import { logoutAdminAction } from '@/modules/auth/controllers/auth.actions';
+import type { ShellLead } from '@/modules/dashboard/services/dashboard.service';
+import { AdminAccess, AdminSection, ROLE_LABEL, canAccess } from '@/modules/auth/models/access.model';
 import {
   IconBell,
   IconCheck,

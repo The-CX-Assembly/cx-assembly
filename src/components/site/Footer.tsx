@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, LinkedIn } from './Icons';
-import { JoinButton } from '@/features/leads/components/JoinModal';
+import { JoinButton } from '@/modules/leads/components/JoinModal';
 import { NAV_LINKS } from './nav';
-import { defaultSettings } from '@/features/content/defaults';
+import { defaultSettings } from '@/modules/content/models/content.defaults';
 
 export default function Footer() {
   return (

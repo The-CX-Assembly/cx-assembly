@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
-import { SITE_URL } from '@/features/seo/metadata';
-import { getMediaSettings } from '@/features/media/server';
+import { SITE_URL } from '@/modules/seo/utils/metadata';
+import { getMediaSettings } from '@/modules/media/services/media.service';
 
 // Rebuilt at most once an hour, so switching a page on in the admin shows up here.
 export const revalidate = 3600;

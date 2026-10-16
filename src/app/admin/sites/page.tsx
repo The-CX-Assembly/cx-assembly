@@ -1,10 +1,10 @@
 import { headers } from 'next/headers';
-import { requireSuperadmin } from '@/features/auth/session';
-import { listSites } from '@/features/sites/server';
-import { getAllLeads } from '@/features/dashboard/stats';
-import { hasAdminCredentials } from '@/server/firebase-admin';
-import { siteIdOf } from '@/features/sites/constants';
-import SitesManager from '@/features/sites/components/SitesManager';
+import { requireSuperadmin } from '@/middlewares/auth.middleware';
+import { listSites } from '@/modules/sites/services/sites.service';
+import { getAllLeads } from '@/modules/dashboard/services/dashboard.service';
+import { hasAdminCredentials } from '@/config/firebase-admin';
+import { siteIdOf } from '@/modules/sites/models/site.constants';
+import SitesManager from '@/modules/sites/components/SitesManager';
 import { PageHeader } from '@/components/admin/ui';
 import { IconGlobe } from '@/components/admin/AdminIcons';
 import ui from '@/components/admin/ui.module.css';

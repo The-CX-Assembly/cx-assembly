@@ -2,57 +2,79 @@
 
 ## Folder map
 
-Code is grouped by **feature**: everything about one area (its database code, server actions and UI) lives in one folder.
+The code uses the familiar backend layers (config, middlewares, controllers, services, models, utils). App-wide pieces sit at the top of `src/`; everything about one area of the product (leads, speakers, media…) is a **module** with the same layers inside it, so working on Leads means opening one folder.
+
+Next.js has no `routes/` folder or `app.js`/`server.js`: the folders under `src/app` *are* the routes, and Next.js starts the server.
 
 ```
 src/
-  app/                        Routes only: thin pages that call into features/
+  app/                        Routes: pages and API URLs. Thin; they call controllers/services in modules/
     (site)/                   Public pages (route group: doesn't appear in URLs)
       page.tsx                  /
       founding-50/              /founding-50
       community-voices/         /community-voices
       privacy-policy/           /privacy-policy
+      videos/, resources/       /videos, /resources (only when switched on in the admin)
     admin/                    Admin console, /admin/*
     api/v1/                   API for other websites (content, leads)
+    api/resources/            Form-gated PDF downloads
     api/seed/                 One-off sample-data loader (super admins only)
     layout.tsx                <html>, fonts, site-wide metadata, structured data
     robots.ts, sitemap.ts
 
-  features/
+  config/                     Setup: Firebase Admin (server), Firebase web client (browser), environment
+  middlewares/                Request guards: admin sign-in & permissions, website API keys & CORS
+  utils/                      App-wide helpers: date formatting, cache refresh
+  components/
+    site/                     Public-site UI shared across pages (Navbar, Footer, hero art…)
+    admin/                    Admin UI kit shared across modules (AdminShell, ui.tsx, Pagination, icons)
+    EnvironmentBanner.tsx     "STAGING" badge
+
+  modules/
     leads/                    Join form, campaign tracking, saving leads, the inbox
     speakers/                 CMO Speakers roster (public cards + admin editor)
     content/                  Page copy, site settings, content editors, defaults
-    media/                    Videos (links + uploads) and form-gated PDFs: admin, public grid/cards, downloads
-    sites/                    Multi-site hub: website registry, API keys, switcher, public API auth
+    media/                    Videos (links + uploads) and form-gated PDFs
+    sites/                    Multi-site hub: website registry, API keys, website switcher
     dashboard/                Admin dashboard stats and charts (Lead Sources, trends…)
-    auth/                     Admin sign-in, session cookies, section permissions
+    auth/                     Admin sign-in, section permissions
     users/                    Admin users & access management
     seo/                      Page metadata, structured data, Tag Manager
-
-  components/
-    site/                     Public-site UI shared across pages (Navbar, Footer, hero art…)
-    admin/                    Admin UI shared across features (AdminShell, Pagination, icons)
-    EnvironmentBanner.tsx     "STAGING" badge
-
-  server/                     Server-only infrastructure: Firebase Admin, cache revalidation
-  lib/                        Shared helpers safe in the browser (env, Firebase web client)
-  types/                      Shared TypeScript types
 
 tests/
   unit/                       Vitest: pure logic
   e2e/                        Playwright: the real app in a browser
 ```
 
-### Inside a feature folder
+### Inside a module
 
-| File | What goes there |
-|---|---|
-| `server.ts` | Database reads/writes. Server-only. |
-| `actions.ts` | Server actions (`'use server'`) called from forms and admin UI. Only async functions may be exported. |
-| `components/` | React components for this feature. |
-| other `*.ts` | Feature helpers, e.g. `leads/validation.ts`, `sites/constants.ts`. |
+Every module uses the same folders (only the ones it needs):
 
-Rule of thumb: a page in `src/app` imports from `features/*`; features may import from each other, from `components/`, `server/` and `lib/`.
+```
+modules/leads/
+  controllers/leads.actions.ts    Server actions: what forms and admin buttons call
+  services/leads.service.ts       Business rules + database reads/writes
+  models/lead.model.ts            Types (the shape of a lead)
+  models/lead.schema.ts           Validation (zod)
+  utils/attribution.ts            Helpers for this module only
+  components/                     React components (JoinForm, LeadsManager…)
+```
+
+| Layer | What goes there | Rules |
+|---|---|---|
+| `controllers/*.actions.ts` | Server actions (`'use server'`) called from forms and the admin. Check access (`middlewares/auth.middleware.ts`), validate input, call a service, refresh pages. | Only async functions may be exported (a Next.js rule). |
+| `services/*.service.ts` | Business logic and Firestore/Storage access. | Server-only: starts with `import 'server-only'`. |
+| `models/*.model.ts`, `*.schema.ts`, `*.constants.ts` | Types, validation schemas, domain constants and defaults. | No database code; safe to import anywhere, including the browser. |
+| `utils/` | Pure helpers used only by this module. | |
+| `components/` | React components for this module. | |
+
+Who may import what:
+
+- `app/` (routes) → `modules/*`, `middlewares/`, `components/`, `config/`, `utils/`.
+- A module → its own files (relative imports, `../services/…`) and other modules' **models, services and components** (`@/modules/…`), plus `config/`, `middlewares/`, `utils/`, `components/`.
+- Browser components never import a `services/` file or `config/firebase-admin.ts` (`import type` is fine: types disappear at build time); `import 'server-only'` turns that mistake into a build error.
+
+**Adding a new module** (e.g. events): create `src/modules/events/` with the folders above, add its admin page under `src/app/admin/events/` and its public pages under `src/app/(site)/`, and register the admin section in `modules/auth/models/access.model.ts`.
 
 ## Data model (Cloud Firestore)
 
@@ -68,43 +90,43 @@ Rule of thumb: a page in `src/app` imports from `features/*`; features may impor
 | `settings/general` | CX Assembly SEO title, description, links | Edited in Settings. |
 | `sites/{siteId}` | Registered websites | Name, URL, allowed origins, features, **hashed** API key. |
 | `sites/{siteId}/{siteContent,leaders,settings}` | Content of other websites | Same shapes as CX Assembly's top-level collections. |
-| `adminUsers/{email}` | Admin access | Role, sections, active. Built-in super admins are defined in `features/users/server.ts`. |
+| `adminUsers/{email}` | Admin access | Role, sections, active. Built-in super admins are defined in `modules/users/services/users.service.ts`. |
 
 Other names kept for the same reason as `leaders`: the admin permission key `'leaders'` (in `adminUsers.sections`), the site feature key `'leaders'` (in `sites.modules`) and the Storage folders `uploads/leaders`.
 
-All server access goes through the Admin SDK (`src/server/firebase-admin.ts`), which bypasses security rules. `firestore.rules` / `storage.rules` only guard direct browser access.
+All server access goes through the Admin SDK (`src/config/firebase-admin.ts`), which bypasses security rules. `firestore.rules` / `storage.rules` only guard direct browser access.
 
 ## How requests flow
 
-**Public pages** are server-rendered and cached, refreshing at most every 60 seconds. Saving in the admin refreshes the affected pages immediately (`server/revalidate.ts`).
+**Public pages** are server-rendered and cached, refreshing at most every 60 seconds. Saving in the admin refreshes the affected pages immediately (`utils/revalidate.ts`).
 
 **A visitor applies:**
-1. `features/leads/attribution.ts` records the campaign link, landing page and referrer when the visit starts (sessionStorage).
+1. `modules/leads/utils/attribution.ts` records the campaign link, landing page and referrer when the visit starts (sessionStorage).
 2. Any Join button opens `JoinModal`, tagged with the button's `source` (`hero`, `navbar`, …).
-3. `JoinForm` posts to the `submitLead` server action, which validates it and saves it with `features/leads/server.ts`.
+3. `JoinForm` posts to the `submitLead` action (`modules/leads/controllers/leads.actions.ts`), which validates it and saves it with `modules/leads/services/leads.service.ts`.
 4. If saving fails, the visitor sees an error, never a false "Application received".
 
-**Admin sign-in:** Firebase Auth (Google or email/password) in the browser, then `completeSignIn` verifies the ID token. If the email has access, the server sets a signed, HttpOnly session cookie (`features/auth/session.ts`). Every admin page and action re-checks access, so removing a user takes effect immediately.
+**Admin sign-in:** Firebase Auth (Google or email/password) in the browser, then `completeSignIn` verifies the ID token. If the email has access, the server sets a signed, HttpOnly session cookie (`middlewares/auth.middleware.ts`). Every admin page and action re-checks access, so removing a user takes effect immediately.
 
-**Other websites** call `/api/v1/content` and `/api/v1/leads` with their API key (`x-api-key`), see `features/sites/public-api.ts`. The site a lead belongs to always comes from the key, never from the request body.
+**Other websites** call `/api/v1/content` and `/api/v1/leads` with their API key (`x-api-key`), see `middlewares/api-key.middleware.ts`. The site a lead belongs to always comes from the key, never from the request body.
 
 ## Multi-site hub
 
-- The **website switcher** (admin header) stores the selected site in a cookie (`features/sites/admin-site.ts`). Content, Settings, Speakers and the Dashboard follow it; **All websites** combines leads and stats.
+- The **website switcher** (admin header) stores the selected site in a cookie (`modules/sites/services/admin-site.service.ts`). Content, Settings, Speakers and the Dashboard follow it; **All websites** combines leads and stats.
 - Server actions receive the `siteId` explicitly and check it exists (`siteExists`), so a save always goes to the site the editor was opened for.
 - CX Assembly (`DEFAULT_SITE_ID = 'cx-assembly'`) keeps its original top-level collections; other sites live under `sites/{siteId}/…` (`siteCollection()` picks the right one).
 
 ## Videos & PDFs
 
 - **Nothing is public by default.** Each video/PDF has a *Live* switch, and the home-page video section, `/videos` and `/resources` each have a master switch (`settings/media`). Pages that are switched off return 404 and are left out of the sitemap.
-- **Uploads go straight to Cloud Storage.** `startUpload` opens a resumable upload session for one object (tied to the admin page's origin); the browser PUTs the file there (`features/media/upload.ts`), then `finishUpload` checks type and size. This avoids App Hosting's 32 MB request limit (videos up to 500 MB, PDFs up to 50 MB).
+- **Uploads go straight to Cloud Storage.** `startUpload` opens a resumable upload session for one object (tied to the admin page's origin); the browser PUTs the file there (`modules/media/utils/upload.ts`), then `finishUpload` checks type and size. This avoids App Hosting's 32 MB request limit (videos up to 500 MB, PDFs up to 50 MB).
 - **Storage layout:** `uploads/**` is public (photos, videos, thumbnails); everything else, including `private/resources/**` (PDFs), is server-only (`storage.rules`).
 - **PDFs are always form-gated.** `requestResource` saves the visitor as a lead (button `pdf-download`, the PDF in `extra`, plus campaign tags), then returns a link to `/api/resources/:id/download` signed for that PDF and valid 15 minutes; the route streams the private file and counts the download.
 - **Players are click-to-play:** only a thumbnail loads until a visitor presses play (YouTube uses its privacy-enhanced domain).
 
 ## SEO
 
-- `features/seo/metadata.ts`: `PAGES` lists the public pages. `pageMetadata()` builds title (`Page - The CX Assembly`), description, canonical URL, Open Graph / X tags and robots; `siteGraph()` / `pageGraph()` build the schema.org data.
+- `modules/seo/utils/metadata.ts`: `PAGES` lists the public pages. `pageMetadata()` builds title (`Page - The CX Assembly`), description, canonical URL, Open Graph / X tags and robots; `siteGraph()` / `pageGraph()` build the schema.org data.
 - `NEXT_PUBLIC_SITE_URL` must be the domain that actually serves the site; every canonical link and preview is built from it.
 - Share image: `public/brand/og-image.png` (1200×630). Icons: `public/brand/icons/`.
 - Staging (`NEXT_PUBLIC_APP_ENV=staging`) is `noindex`, blocks all crawlers in robots.txt and never loads Tag Manager.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildDashboard, timeAgo } from '@/features/dashboard/stats';
-import type { Lead, LeadSource } from '@/types';
+import { buildDashboard, timeAgo } from '@/modules/dashboard/services/dashboard.service';
+import type { Lead, LeadSource } from '@/modules/leads/models/lead.model';
 
 const NOW = new Date('2026-10-15T12:00:00Z');
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000).toISOString();

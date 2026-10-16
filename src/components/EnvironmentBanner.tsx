@@ -1,4 +1,4 @@
-import { IS_STAGING } from '@/lib/env';
+import { IS_STAGING } from '@/config/env';
 
 /** A small, always-visible marker so nobody mistakes staging for the live site. */
 export default function EnvironmentBanner() {

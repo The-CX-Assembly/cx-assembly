@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
 import { Eyebrow } from '@/components/site/Type';
-import { getMediaSettings, getPublishedVideos } from '@/features/media/server';
-import VideoGrid from '@/features/media/components/VideoGrid';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { getMediaSettings, getPublishedVideos } from '@/modules/media/services/media.service';
+import VideoGrid from '@/modules/media/components/VideoGrid';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.videos);
 

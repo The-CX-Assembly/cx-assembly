@@ -1,8 +1,8 @@
-import { requireSection } from '@/features/auth/session';
-import { getAdminSiteContext, sitesWith } from '@/features/sites/admin-site';
-import { getAllSpeakersAdmin } from '@/features/speakers/server';
-import SpeakersManager from '@/features/speakers/components/SpeakersManager';
-import ChooseSite from '@/features/sites/components/ChooseSite';
+import { requireSection } from '@/middlewares/auth.middleware';
+import { getAdminSiteContext, sitesWith } from '@/modules/sites/services/admin-site.service';
+import { getAllSpeakersAdmin } from '@/modules/speakers/services/speakers.service';
+import SpeakersManager from '@/modules/speakers/components/SpeakersManager';
+import ChooseSite from '@/modules/sites/components/ChooseSite';
 
 export default async function AdminSpeakersPage() {
   await requireSection('leaders');

@@ -1,10 +1,10 @@
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
 import { Eyebrow } from '@/components/site/Type';
-import { getSiteContent } from '@/features/content/server';
+import { getSiteContent } from '@/modules/content/services/content.service';
 import { Metadata } from 'next';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.privacyPolicy);
 

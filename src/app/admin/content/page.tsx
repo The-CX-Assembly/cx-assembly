@@ -1,9 +1,9 @@
-import { requireSection } from '@/features/auth/session';
-import { getAdminSiteContext } from '@/features/sites/admin-site';
-import { getContentSections, getSiteContent } from '@/features/content/server';
-import ContentEditor from '@/features/content/components/ContentEditor';
-import SectionsEditor from '@/features/content/components/SectionsEditor';
-import ChooseSite from '@/features/sites/components/ChooseSite';
+import { requireSection } from '@/middlewares/auth.middleware';
+import { getAdminSiteContext } from '@/modules/sites/services/admin-site.service';
+import { getContentSections, getSiteContent } from '@/modules/content/services/content.service';
+import ContentEditor from '@/modules/content/components/ContentEditor';
+import SectionsEditor from '@/modules/content/components/SectionsEditor';
+import ChooseSite from '@/modules/sites/components/ChooseSite';
 import { PageHeader } from '@/components/admin/ui';
 import { IconEdit } from '@/components/admin/AdminIcons';
 import ui from '@/components/admin/ui.module.css';

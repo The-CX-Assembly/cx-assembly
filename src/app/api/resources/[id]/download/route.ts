@@ -1,8 +1,8 @@
 import { Readable } from 'node:stream';
 import { FieldValue } from 'firebase-admin/firestore';
-import { getAdminBucket, getAdminDb } from '@/server/firebase-admin';
-import { siteCollection } from '@/features/sites/server';
-import { getResource, verifyDownloadToken } from '@/features/media/server';
+import { getAdminBucket, getAdminDb } from '@/config/firebase-admin';
+import { siteCollection } from '@/modules/sites/services/sites.service';
+import { getResource, verifyDownloadToken } from '@/modules/media/services/media.service';
 
 /**
  * GET /api/resources/:id/download?t=<token>

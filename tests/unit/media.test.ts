@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { embedUrl, formatBytes, parseVideoUrl } from '@/features/media/embed';
+import { embedUrl, formatBytes, parseVideoUrl } from '@/modules/media/utils/embed';
 
 describe('parseVideoUrl', () => {
   it.each([
