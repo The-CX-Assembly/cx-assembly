@@ -56,6 +56,7 @@ test('invalid submissions show errors and keep what was typed', async ({ page })
 
   await expect(dialog.getByText('Designation / Title is required')).toBeVisible();
   await expect(dialog.getByText('Please enter a valid email address')).toBeVisible();
+  await expect(dialog.getByText('Mobile number is required')).toBeVisible();
   await expect(dialog.locator('#fullName')).toHaveValue('Test Lead');
   await expect(dialog.locator('#email')).toHaveValue('not-an-email');
 });
@@ -67,6 +68,10 @@ test('a valid application is confirmed', async ({ page }) => {
   await dialog.locator('#designation').fill('QA Lead');
   await dialog.locator('#company').fill('E2E Test Co');
   await dialog.locator('#email').fill('e2e-applicant@example.com');
+  await dialog.locator('#phone').fill('+91 98765 43210');
   await dialog.locator('button[type="submit"]').click();
   await expect(dialog.getByRole('status')).toContainText('Application received');
+  await expect(dialog.getByRole('status')).toContainText(
+    'The CX Assembly curates each application carefully and our team will get in touch with you shortly.'
+  );
 });

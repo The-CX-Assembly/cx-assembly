@@ -1,12 +1,12 @@
 import Navbar from '@/components/site/Navbar';
-import { JoinButton } from '@/features/leads/components/JoinModal';
+import { JoinButton } from '@/modules/leads/components/JoinModal';
 import Footer from '@/components/site/Footer';
 import { Eyebrow } from '@/components/site/Type';
 import { ArrowRight } from '@/components/site/Icons';
-import { getVoices } from '@/features/content/server';
+import { getVoices } from '@/modules/content/services/content.service';
 import { Metadata } from 'next';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.communityVoices);
 

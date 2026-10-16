@@ -1,10 +1,9 @@
-import { requireSection } from '@/features/auth/session';
-import { getAdminSiteContext } from '@/features/sites/admin-site';
-import { getSiteSettings } from '@/features/content/server';
-import SettingsManager from '@/features/content/components/SettingsManager';
-import ChooseSite from '@/features/sites/components/ChooseSite';
+import { requireSection } from '@/middlewares/auth.middleware';
+import { getAdminSiteContext } from '@/modules/sites/services/admin-site.service';
+import { getSiteSettings } from '@/modules/content/services/content.service';
+import SettingsManager from '@/modules/content/components/SettingsManager';
+import ChooseSite from '@/modules/sites/components/ChooseSite';
 import { PageHeader } from '@/components/admin/ui';
-import { IconSettings } from '@/components/admin/AdminIcons';
 import ui from '@/components/admin/ui.module.css';
 
 export default async function AdminSettingsPage() {
@@ -21,12 +20,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className={ui.page}>
-      <PageHeader
-        eyebrow={site.name}
-        icon={<IconSettings size={14} />}
-        title="Settings"
-        description="How the website appears in Google and link previews, plus its contact details and credibility line."
-      />
+      <PageHeader title="Settings" />
       <SettingsManager key={site.id} siteId={site.id} siteUrl={site.url} initialSettings={settings} />
     </div>
   );

@@ -25,7 +25,7 @@
 .bone {
   display: block;
   border-radius: 10px;
-  background: linear-gradient(90deg, #ECEEF3 0%, #F6F7FA 40%, #ECEEF3 80%) 0 0 / 300% 100%;
+  background: linear-gradient(90deg, var(--a-skeleton) 0%, var(--a-skeleton-shine) 40%, var(--a-skeleton) 80%) 0 0 / 300% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
 

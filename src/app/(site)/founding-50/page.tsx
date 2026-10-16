@@ -1,12 +1,12 @@
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
-import SpeakerCard from '@/features/speakers/components/SpeakerCard';
+import SpeakerCard from '@/modules/speakers/components/SpeakerCard';
 import { Accent, Eyebrow } from '@/components/site/Type';
-import { getSiteContent } from '@/features/content/server';
-import { getSpeakers } from '@/features/speakers/server';
+import { getSiteContent } from '@/modules/content/services/content.service';
+import { getSpeakers } from '@/modules/speakers/services/speakers.service';
 import { Metadata } from 'next';
-import { PAGES, pageGraph, pageMetadata } from '@/features/seo/metadata';
-import JsonLd from '@/features/seo/components/JsonLd';
+import { PAGES, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
+import JsonLd from '@/modules/seo/components/JsonLd';
 
 export const metadata: Metadata = pageMetadata(PAGES.founding50);
 
@@ -48,7 +48,7 @@ export default async function Founding50Page() {
           <div className="wrap">
             <div className="section-head" style={{ paddingTop: 32, borderTop: '1px solid var(--rule)' }}>
               <h2 className="h-md">Meet the Founding CX Leaders</h2>
-              <p className="muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <p className="muted">
                 {String(speakers.length).padStart(2, '0')} / 50
               </p>
             </div>

@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { apiLeadSchema, leadSchema } from '@/features/leads/validation';
+import { apiLeadSchema, leadSchema } from '@/modules/leads/models/lead.schema';
 
 const validForm = {
   fullName: 'Asha Rao',
   designation: 'Head of CX',
   company: 'Acme',
   email: 'asha@acme.com',
+  phone: '+91 98765 43210',
   type: 'cx_leader',
 };
 
@@ -14,9 +15,17 @@ describe('leadSchema (CX Assembly join form)', () => {
     expect(leadSchema.safeParse(validForm).success).toBe(true);
   });
 
-  it.each(['fullName', 'designation', 'company'])('requires %s', (field) => {
+  it.each(['fullName', 'designation', 'company', 'phone'])('requires %s', (field) => {
     const result = leadSchema.safeParse({ ...validForm, [field]: ' ' });
     expect(result.success).toBe(false);
+  });
+
+  it.each(['9876543210', '+91-98765-43210', '(022) 2345 6789'])('accepts the mobile number %s', (phone) => {
+    expect(leadSchema.safeParse({ ...validForm, phone }).success).toBe(true);
+  });
+
+  it.each(['12345', 'call me', '+91 98765 43210 ext 9', '1234567890123456'])('rejects the mobile number %s', (phone) => {
+    expect(leadSchema.safeParse({ ...validForm, phone }).success).toBe(false);
   });
 
   it('rejects an invalid email', () => {

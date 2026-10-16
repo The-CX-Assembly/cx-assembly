@@ -1,6 +1,6 @@
-import { getContentSections, getSiteSettings } from '@/features/content/server';
-import { getAllSpeakersAdmin } from '@/features/speakers/server';
-import { apiJson, authenticateSite, preflight } from '@/features/sites/public-api';
+import { getContentSections, getSiteSettings } from '@/modules/content/services/content.service';
+import { getAllSpeakersAdmin } from '@/modules/speakers/services/speakers.service';
+import { apiJson, authenticateSite, preflight } from '@/middlewares/api-key.middleware';
 
 export const OPTIONS = preflight;
 

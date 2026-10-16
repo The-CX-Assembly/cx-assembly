@@ -1,17 +1,17 @@
 import Link from 'next/link';
-import { requireSection } from '@/features/auth/session';
-import { getAdminSiteContext } from '@/features/sites/admin-site';
-import { getAllSpeakersAdmin } from '@/features/speakers/server';
-import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/features/dashboard/stats';
-import { siteIdOf } from '@/features/sites/constants';
-import RecentLeadsTable from '@/features/leads/components/RecentLeadsTable';
-import LeadSources from '@/features/dashboard/components/LeadSources';
-import TrendChart from '@/features/dashboard/components/TrendChart';
-import PipelineBars from '@/features/dashboard/components/PipelineBars';
-import RadialStat from '@/features/dashboard/components/RadialStat';
-import MixGauge from '@/features/dashboard/components/MixGauge';
+import { requireSection } from '@/middlewares/auth.middleware';
+import { getAdminSiteContext } from '@/modules/sites/services/admin-site.service';
+import { getAllSpeakersAdmin } from '@/modules/speakers/services/speakers.service';
+import { buildDashboard, getAllLeads, greeting, todayLabel } from '@/modules/dashboard/services/dashboard.service';
+import { siteIdOf } from '@/modules/sites/models/site.constants';
+import RecentLeadsTable from '@/modules/leads/components/RecentLeadsTable';
+import LeadSources from '@/modules/dashboard/components/LeadSources';
+import TrendChart from '@/modules/dashboard/components/TrendChart';
+import PipelineBars from '@/modules/dashboard/components/PipelineBars';
+import RadialStat from '@/modules/dashboard/components/RadialStat';
+import MixGauge from '@/modules/dashboard/components/MixGauge';
 import { IconInbox, IconPlus } from '@/components/admin/AdminIcons';
-import styles from '@/features/dashboard/components/dashboard.module.css';
+import styles from '@/modules/dashboard/components/dashboard.module.css';
 
 
 export default async function AdminDashboardPage() {

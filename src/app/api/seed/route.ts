@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
-import { getAdminDb } from '@/server/firebase-admin';
-import { getAdminSession } from '@/features/auth/session';
+import { getAdminDb } from '@/config/firebase-admin';
+import { getAdminSession } from '@/middlewares/auth.middleware';
 import {
   defaultContent,
   defaultSettings,
   sampleSpeakers,
   sampleVoices,
-} from '@/features/content/defaults';
+} from '@/modules/content/models/content.defaults';
 
 function hasSeedSecret(request: Request) {
   const expected = process.env.ADMIN_SESSION_SECRET;

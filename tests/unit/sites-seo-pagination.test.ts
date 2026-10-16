@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SITE_ID, SITE_ID_PATTERN, siteIdOf, slugifySiteId } from '@/features/sites/constants';
-import { PAGES, SITE_URL, fullTitle, pageGraph, pageMetadata } from '@/features/seo/metadata';
+import { DEFAULT_SITE_ID, SITE_ID_PATTERN, siteIdOf, slugifySiteId } from '@/modules/sites/models/site.constants';
+import { PAGES, SITE_URL, fullTitle, pageGraph, pageMetadata } from '@/modules/seo/utils/metadata';
 import { pageList } from '@/components/admin/Pagination';
 
 describe('site ids', () => {

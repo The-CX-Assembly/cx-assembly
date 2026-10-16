@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, LinkedIn } from './Icons';
-import { JoinButton } from '@/features/leads/components/JoinModal';
+import { JoinButton } from '@/modules/leads/components/JoinModal';
 import { NAV_LINKS } from './nav';
-import { defaultSettings } from '@/features/content/defaults';
+import { defaultSettings } from '@/modules/content/models/content.defaults';
 
 export default function Footer() {
   return (
     <footer className="site-footer" id="contact">
       <div className="wrap">
         <div className="footer__brand">
-          <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="footer__mark" />
+          <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="footer__mark" />
           <p className="footer__word">The CX Assembly</p>
         </div>
 

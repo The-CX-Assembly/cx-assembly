@@ -1,8 +1,8 @@
-import { requireSuperadmin } from '@/features/auth/session';
-import { listAdminUsers } from '@/features/users/server';
-import { timeAgo } from '@/features/dashboard/stats';
-import { hasAdminCredentials } from '@/server/firebase-admin';
-import UsersManager from '@/features/users/components/UsersManager';
+import { requireSuperadmin } from '@/middlewares/auth.middleware';
+import { listAdminUsers } from '@/modules/users/services/users.service';
+import { timeAgo } from '@/modules/dashboard/services/dashboard.service';
+import { hasAdminCredentials } from '@/config/firebase-admin';
+import UsersManager from '@/modules/users/components/UsersManager';
 
 export default async function AdminUsersPage() {
   const me = await requireSuperadmin();

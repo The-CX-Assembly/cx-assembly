@@ -3,33 +3,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/site/Navbar';
 import Footer from '@/components/site/Footer';
-import SpeakerCard from '@/features/speakers/components/SpeakerCard';
-import HeroArt from '@/components/site/HeroArt';
+import SpeakerCard from '@/modules/speakers/components/SpeakerCard';
 import InView from '@/components/site/InView';
 import PhilosophyShowcase from '@/components/site/PhilosophyShowcase';
 import RevealWords, { sentenceLines } from '@/components/site/RevealWords';
-import { JoinButton } from '@/features/leads/components/JoinModal';
+import { JoinButton } from '@/modules/leads/components/JoinModal';
 import { Accent, Eyebrow } from '@/components/site/Type';
-import {
-  ArrowDownRight,
-  ArrowRight,
-  BookIcon,
-  ChatIcon,
-  SparkIcon,
-  UsersIcon,
-} from '@/components/site/Icons';
-import { getSiteContent, getSiteSettings } from '@/features/content/server';
-import { getSpeakers } from '@/features/speakers/server';
-import { pageGraph } from '@/features/seo/metadata';
-import { defaultSettings } from '@/features/content/defaults';
-import JsonLd from '@/features/seo/components/JsonLd';
-import { getMediaSettings, getPublishedVideos } from '@/features/media/server';
-import VideoGrid from '@/features/media/components/VideoGrid';
+import { ArrowRight } from '@/components/site/Icons';
+import { getSiteContent, getSiteSettings } from '@/modules/content/services/content.service';
+import { getSpeakers } from '@/modules/speakers/services/speakers.service';
+import { pageGraph } from '@/modules/seo/utils/metadata';
+import { defaultSettings } from '@/modules/content/models/content.defaults';
+import JsonLd from '@/modules/seo/components/JsonLd';
+import { getMediaSettings, getPublishedVideos } from '@/modules/media/services/media.service';
+import VideoGrid from '@/modules/media/components/VideoGrid';
 
 export const revalidate = 60; // Revalidate every 60s or on demand via admin
-
-// Icons for the four Why We Exist boxes, in order
-const WHY_ICONS = [SparkIcon, BookIcon, ChatIcon, UsersIcon];
 
 // Short labels for the three For Partners paragraphs (paragraph1–3 in the CMS)
 const PARTNER_TITLES = ['Built Through Collaboration', 'Understanding Before Solutions', 'Meaningful Industry Engagement'];
@@ -63,11 +52,6 @@ export default async function HomePage() {
   ];
   const whyBoxes = [whyWeExist.paragraph1, whyWeExist.paragraph2, p3First, p3Rest.join(' ')].filter(Boolean);
   const heroWords = hero.headline.trim().split(/\s+/);
-  const heroSpeakers = speakers.slice(0, 4);
-  // "50 Founding CX Leaders" → big number + label
-  const [, foundingNum = '', foundingLabel = settings.foundingCount] = settings.foundingCount.match(/^(\d+)\s+(.+)$/) ?? [];
-  const credibility = [settings.credibilityText, settings.foundingCount].filter(Boolean);
-  const marqueeRun = [...credibility, ...credibility, ...credibility];
 
   return (
     <>
@@ -82,85 +66,42 @@ export default async function HomePage() {
 
       <main>
         {/* ── HERO ─────────────────────────────────────────── */}
+        {/* Type-only hero: light headline area over a dark band holding the copy and CTAs */}
         <section className="hero">
-          <div className="wrap hero__grid">
-            <div className="hero__main">
-              <p className="hero__kicker">
-                <span className="hero__pulse" aria-hidden="true" />
-                {hero.tagline}
-              </p>
+          <div className="hero__card">
+            <div className="wrap hero__inner">
+              <div className="hero__top">
+                <p className="eyebrow">{hero.tagline}</p>
+                {settings.credibilityText && <p className="eyebrow hero__launch">{settings.credibilityText}</p>}
+              </div>
 
-              <h1 className="display hero__title">
+              <h1 className="hero__title">
                 {heroWords.map((word, i) => (
                   <Fragment key={i}>
                     <span className="hw" style={{ '--i': i } as React.CSSProperties}>
-                      <span className={i >= heroWords.length - 2 ? 'hero__em' : undefined}>{word}</span>
+                      <span>{word}</span>
                     </span>{' '}
                   </Fragment>
                 ))}
               </h1>
-
-              <p className="lede hero__lede">{hero.subheadline}</p>
-
-              <div className="hero__actions">
-                <JoinButton source="hero">
-                  {hero.ctaPrimaryText}
-                  <ArrowRight size={16} />
-                </JoinButton>
-                <Link href="/founding-50" className="link-arrow">
-                  {hero.ctaSecondaryText}
-                </Link>
-              </div>
             </div>
 
-            <div className="hero__visual">
-              <div className="hero__panel">
-                <HeroArt />
-                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="hero__panel-mark" priority aria-hidden="true" />
-                {settings.credibilityText && (
-                  <p className="hero__chip">
-                    <span className="hero__pulse hero__pulse--light" aria-hidden="true" />
-                    {settings.credibilityText}
-                  </p>
-                )}
+            <div className="hero__band section--ink">
+              <div className="wrap hero__foot">
+                <p className="hero__lede">{hero.subheadline}</p>
+                <div className="hero__actions">
+                  <JoinButton source="hero">
+                    {hero.ctaPrimaryText}
+                    <ArrowRight size={16} />
+                  </JoinButton>
+                  <Link href="/founding-50" className="link-arrow">
+                    {hero.ctaSecondaryText}
+                  </Link>
+                </div>
               </div>
-
-              {settings.foundingCount && (
-                <Link href="/founding-50" className="hero__stat">
-                  {heroSpeakers.length > 0 && (
-                    <span className="hero__faces" aria-hidden="true">
-                      {heroSpeakers.map((speaker) => (
-                        <span key={speaker.id} className="hero__face">
-                          <Image src={speaker.photoUrl || '/brand/leader-sample-1.jpg'} alt="" fill sizes="48px" style={{ objectFit: 'cover' }} />
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                  <span className="hero__stat-text">
-                    {foundingNum && <span className="hero__stat-num">{foundingNum}</span>}
-                    <span className="hero__stat-label">{foundingLabel}</span>
-                  </span>
-                </Link>
-              )}
             </div>
           </div>
         </section>
-
-        {/* Credibility marquee */}
-        <div className="marquee" role="region" aria-label={credibility.join('. ')}>
-          <div className="marquee__track" aria-hidden="true">
-            {[0, 1].map((group) => (
-              <div key={group} className="marquee__group">
-                {marqueeRun.map((item, i) => (
-                  <span key={i} style={{ display: 'contents' }}>
-                    <span className="marquee__item">{item}</span>
-                    <Image src="/brand/cx-mark-navy.png" alt="" width={916} height={508} className="marquee__sep" />
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ── 01 WHY WE EXIST ─────────────────────────────── */}
         <section id="why-we-exist" className="section">
@@ -169,37 +110,35 @@ export default async function HomePage() {
               <Eyebrow num="01">{whyWeExist.badge}</Eyebrow>
             </div>
 
-            <RevealWords lines={sentenceLines(whyWeExist.headline)} className="why-head" />
+            {/* Headline stays put while the four statements scroll past; their words
+                light up as they reach reading height, and a line tracks progress */}
+            <div className="why-layout">
+              <div className="why-aside">
+                <RevealWords lines={sentenceLines(whyWeExist.headline)} className="why-head" />
+                <div className="why-progress" aria-hidden="true">
+                  <span />
+                </div>
+              </div>
 
-            {/* Story cards: each one slides up and stacks over the last, light to dark */}
-            <ol className="why-stack">
-              {whyBoxes.map((text, i) => {
-                const Icon = WHY_ICONS[i % WHY_ICONS.length];
-                return (
-                  <li key={i} className={`why-card why-card--${i % 4}`} style={{ '--i': i } as React.CSSProperties}>
-                    <div className="why-card__meta">
-                      <span className="why-card__num">{String(i + 1).padStart(2, '0')}</span>
-                      <span className="why-card__steps" aria-hidden="true">
-                        {whyBoxes.map((_, j) => (
-                          <span key={j} className={j <= i ? 'is-on' : undefined} />
-                        ))}
-                      </span>
-                    </div>
-                    <p className="why-card__text">{text}</p>
-                    <span className="why-card__orb" aria-hidden="true">
-                      <span className="why-card__ring" />
-                      <span className="why-card__icon">
-                        <Icon size={34} />
-                      </span>
-                    </span>
+              <ol className="why-story">
+                {whyBoxes.map((text, i) => (
+                  <li key={i} className="why-step">
+                    <span className="why-step__num">{String(i + 1).padStart(2, '0')}</span>
+                    <p className="why-step__text">
+                      {text.split(/\s+/).map((word, j) => (
+                        <Fragment key={j}>
+                          <span className="lw">{word}</span>{' '}
+                        </Fragment>
+                      ))}
+                    </p>
                   </li>
-                );
-              })}
-            </ol>
+                ))}
+              </ol>
+            </div>
 
             <InView className="why-body" threshold={0.3}>
               <p className="why-conclusion">
-                <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="why-conclusion__mark" />
+                <Image src="/brand/cx-mark-light.png" alt="" width={800} height={420} className="why-conclusion__mark" />
                 <span className="why-conclusion__text">{whyWeExist.conclusion}</span>
               </p>
             </InView>
@@ -253,33 +192,25 @@ export default async function HomePage() {
                 <p className="eyebrow" style={{ marginBottom: 24 }}>
                   What You Can Expect
                 </p>
-                <ul className="tiles">
-                  {forLeaders.takeaways.map((item) => {
+                {/* Numbered rows; a navy fill sweeps across the row under the pointer */}
+                <ol className="expect">
+                  {forLeaders.takeaways.map((item, i) => {
                     const { title, text } = splitLabel(item);
                     return (
-                      <li key={item} className="tile reveal">
-                        <div className="tile__head">
-                          <h3 className="tile__title">{title}</h3>
-                          <span className="tile__arrow">
-                            <ArrowDownRight />
-                          </span>
-                        </div>
-                        {text && <p className="tile__text">{text}</p>}
+                      <li key={item} className="expect__row reveal">
+                        <span className="expect__num">{String(i + 1).padStart(2, '0')}</span>
+                        <h3 className="expect__title">{title}</h3>
+                        {text && <p className="expect__text">{text}</p>}
                       </li>
                     );
                   })}
-                  <li className="reveal" style={{ display: 'flex' }}>
-                    <JoinButton source="for-leaders-tile" className="tile tile--cta">
-                      <span className="tile__head">
-                        <span className="tile__title">{forLeaders.ctaText}</span>
-                        <span className="tile__arrow">
-                          <ArrowRight size={22} />
-                        </span>
-                      </span>
-                      <span className="tile__text">{forLeaders.note}</span>
-                    </JoinButton>
-                  </li>
-                </ul>
+                </ol>
+
+                <JoinButton source="for-leaders-tile" className="expect__cta reveal">
+                  <span className="expect__cta-title">{forLeaders.ctaText}</span>
+                  {forLeaders.note && <span className="expect__cta-note">{forLeaders.note}</span>}
+                  <ArrowRight size={22} />
+                </JoinButton>
               </div>
             </div>
           </div>
@@ -356,7 +287,6 @@ export default async function HomePage() {
             </div>
 
             <div className="principle reveal">
-              <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="principle__mark" aria-hidden="true" />
               {principleLead && <p className="eyebrow">{principleLead}</p>}
               <p className="principle__text">{principleBody}</p>
             </div>
@@ -390,7 +320,6 @@ export default async function HomePage() {
                 </figure>
 
                 <div className="founder-panel__body">
-                  <Image src="/brand/cx-mark-light.png" alt="" width={916} height={508} className="founder-panel__mark" aria-hidden="true" />
                   <p className="founder-panel__intro">{aboutUs.paragraph2}</p>
 
                   {/* paragraph3, shown whole: the lead-in small, the belief large */}
