@@ -164,7 +164,7 @@ export default function LeadsManager({
   const filtersActive = Boolean(searchTerm) || siteFilter !== ALL_SITES || typeFilter !== 'all' || statusFilter !== 'all';
 
   return (
-    <div className={ui.page}>
+    <div className={cx(ui.page, ui.pageFill)} data-page-fill>
       <PageHeader
         title="Leads"
         actions={
@@ -245,102 +245,104 @@ export default function LeadsManager({
           )}
         </div>
 
-        {filteredLeads.length === 0 ? (
-          <EmptyState icon={leads.length ? <IconSearch size={22} /> : <IconInbox size={22} />} title={leads.length ? 'No leads match these filters' : 'No leads yet'}>
-            {leads.length
-              ? 'Try a different search, status or category.'
-              : 'Applications from the website’s Join buttons and from connected websites appear here.'}
-          </EmptyState>
-        ) : (
-          <div className={ui.tableWrap}>
-            <table className={cx(ui.table, ui.tableCards)}>
-              <thead>
-                <tr>
-                  <th>Applicant</th>
-                  <th>Role</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Submitted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageLeads.map((lead, i) => (
-                  <tr
-                    key={lead.id}
-                    className={ui.rowClickable}
-                    style={{ '--i': i } as React.CSSProperties}
-                    onClick={() => setSelectedId(lead.id)}
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && setSelectedId(lead.id)}
-                    aria-label={`Open ${lead.fullName}`}
-                  >
-                    <td>
-                      <div className={ui.person}>
-                        <Avatar name={lead.fullName} />
-                        <div>
-                          <span className={ui.cellMain}>{lead.fullName}</span>
-                          <span className={ui.cellSub}>{lead.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className={ui.cardFull}>
-                      <span className={ui.cellMain} style={{ fontWeight: 500 }}>
-                        {lead.designation || '—'}
-                      </span>
-                      <span className={ui.cellSub}>
-                        {[lead.company, multiSite ? siteName(lead) : ''].filter(Boolean).join(' · ') || '—'}
-                      </span>
-                    </td>
-                    <td className={ui.cardFull}>
-                      {lead.source?.cta || lead.source?.page ? (
-                        <>
-                          <span className={ui.cellMain} style={{ fontWeight: 500 }}>
-                            {ctaLabel(lead.source.cta) || 'Form'}
-                            {lead.source.utmCampaign && (
-                              <>
-                                {' '}
-                                <Badge tone="blue">{lead.source.utmCampaign}</Badge>
-                              </>
-                            )}
-                          </span>
-                          <span className={ui.cellSub}>
-                            {[lead.source.utmSource, lead.source.landingPage || lead.source.page].filter(Boolean).join(' · ')}
-                          </span>
-                        </>
-                      ) : (
-                        <span className={ui.cellSub}>Not tracked</span>
-                      )}
-                    </td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <select
-                        className={ui.statusSelect}
-                        style={toneStyle(STATUS[lead.status].tone)}
-                        value={lead.status}
-                        disabled={updating === lead.id}
-                        onChange={(e) => handleStatusChange(lead.id, e.target.value as LeadStatus)}
-                        aria-label={`Status of ${lead.fullName}`}
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td title={formatDateTime(lead.createdAt)}>
-                      <span className={ui.cellMain} style={{ fontWeight: 500 }}>
-                        {timeAgo(lead.createdAt, now)}
-                      </span>
-                      <span className={ui.cellSub}>
-                        <Badge tone={TYPES[lead.type].tone}>{TYPES[lead.type].label}</Badge>
-                      </span>
-                    </td>
+        <div className={ui.panelScroll}>
+          {filteredLeads.length === 0 ? (
+            <EmptyState icon={leads.length ? <IconSearch size={22} /> : <IconInbox size={22} />} title={leads.length ? 'No leads match these filters' : 'No leads yet'}>
+              {leads.length
+                ? 'Try a different search, status or category.'
+                : 'Applications from the website’s Join buttons and from connected websites appear here.'}
+            </EmptyState>
+          ) : (
+            <div className={ui.tableWrap}>
+              <table className={cx(ui.table, ui.tableCards)}>
+                <thead>
+                  <tr>
+                    <th>Applicant</th>
+                    <th>Role</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {pageLeads.map((lead, i) => (
+                    <tr
+                      key={lead.id}
+                      className={ui.rowClickable}
+                      style={{ '--i': i } as React.CSSProperties}
+                      onClick={() => setSelectedId(lead.id)}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && setSelectedId(lead.id)}
+                      aria-label={`Open ${lead.fullName}`}
+                    >
+                      <td>
+                        <div className={ui.person}>
+                          <Avatar name={lead.fullName} />
+                          <div>
+                            <span className={ui.cellMain}>{lead.fullName}</span>
+                            <span className={ui.cellSub}>{lead.email}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={ui.cardFull}>
+                        <span className={ui.cellMain} style={{ fontWeight: 500 }}>
+                          {lead.designation || '—'}
+                        </span>
+                        <span className={ui.cellSub}>
+                          {[lead.company, multiSite ? siteName(lead) : ''].filter(Boolean).join(' · ') || '—'}
+                        </span>
+                      </td>
+                      <td className={ui.cardFull}>
+                        {lead.source?.cta || lead.source?.page ? (
+                          <>
+                            <span className={ui.cellMain} style={{ fontWeight: 500 }}>
+                              {ctaLabel(lead.source.cta) || 'Form'}
+                              {lead.source.utmCampaign && (
+                                <>
+                                  {' '}
+                                  <Badge tone="blue">{lead.source.utmCampaign}</Badge>
+                                </>
+                              )}
+                            </span>
+                            <span className={ui.cellSub}>
+                              {[lead.source.utmSource, lead.source.landingPage || lead.source.page].filter(Boolean).join(' · ')}
+                            </span>
+                          </>
+                        ) : (
+                          <span className={ui.cellSub}>Not tracked</span>
+                        )}
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <select
+                          className={ui.statusSelect}
+                          style={toneStyle(STATUS[lead.status].tone)}
+                          value={lead.status}
+                          disabled={updating === lead.id}
+                          onChange={(e) => handleStatusChange(lead.id, e.target.value as LeadStatus)}
+                          aria-label={`Status of ${lead.fullName}`}
+                        >
+                          {STATUSES.map((s) => (
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td title={formatDateTime(lead.createdAt)}>
+                        <span className={ui.cellMain} style={{ fontWeight: 500 }}>
+                          {timeAgo(lead.createdAt, now)}
+                        </span>
+                        <span className={ui.cellSub}>
+                          <Badge tone={TYPES[lead.type].tone}>{TYPES[lead.type].label}</Badge>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         <Pagination page={currentPage} pageSize={PAGE_SIZE} total={filteredLeads.length} onChange={setPage} noun="leads" />
       </section>
 

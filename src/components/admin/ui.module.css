@@ -272,6 +272,54 @@ button.stat:hover {
   animation-delay: 0.2s;
 }
 
+/* List pages that fit the window: the header, stats, tabs and filters stay put and
+   only the list inside the panel scrolls. Mark the page with `data-page-fill` too
+   (AdminShell gives its wrapper the full height). */
+.pageFill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 24px;
+}
+
+.pageFill > .panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panelScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* The scroll area handles sideways scrolling too, so column headers can stick. */
+.panelScroll > .tableWrap {
+  overflow: visible;
+}
+
+.panelScroll .table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Phones and short windows: too little room for a fixed top, so scroll the page as usual. */
+@media (max-width: 720px), (max-height: 600px) {
+  .pageFill {
+    height: auto;
+    padding-bottom: 40px;
+  }
+
+  .panelScroll {
+    overflow: visible;
+  }
+}
+
 .panel + .panel {
   margin-top: 20px;
 }
