@@ -122,7 +122,9 @@ export default function LoginForm({ theme }: { theme: AdminTheme }) {
       <main className={styles.card}>
         <div className={styles.brand}>
           <span className={styles.logo}>
-            <Image src="/brand/logo.png" alt="The CX Assembly" fill sizes="56px" style={{ objectFit: 'contain' }} priority />
+            {/* Navy logo in light mode, cream in dark mode. */}
+            <Image src="/brand/cx-logo-navy.png" alt="The CX Assembly" fill sizes="52px" className={styles.logoOnLight} style={{ objectFit: 'contain', padding: 7 }} priority />
+            <Image src="/brand/cx-logo-light.png" alt="The CX Assembly" fill sizes="52px" className={styles.logoOnDark} style={{ objectFit: 'contain', padding: 7 }} />
           </span>
           <span className={styles.badge}>Admin Console</span>
         </div>
