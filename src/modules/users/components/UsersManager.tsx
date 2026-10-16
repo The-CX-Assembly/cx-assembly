@@ -136,13 +136,7 @@ export default function UsersManager({
   return (
     <div className={styles.page}>
       <header className={styles.head}>
-        <div>
-          <span className={styles.eyebrow}>
-            <IconShield size={14} /> Super admin
-          </span>
-          <h1>Users &amp; Access</h1>
-          <p>Invite teammates and choose exactly which parts of the console they can use.</p>
-        </div>
+        <h1>Users &amp; Access</h1>
         <button
           type="button"
           className={styles.primary}

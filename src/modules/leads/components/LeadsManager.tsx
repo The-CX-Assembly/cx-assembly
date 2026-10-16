@@ -166,10 +166,7 @@ export default function LeadsManager({
   return (
     <div className={ui.page}>
       <PageHeader
-        eyebrow="Inbox"
-        icon={<IconInbox size={14} />}
         title="Leads"
-        description="Every application and enquiry from every website, with the button, page and campaign it came from."
         actions={
           <button type="button" className={ui.btnGhost} onClick={exportToCSV} disabled={filteredLeads.length === 0}>
             <IconDownload size={16} /> Export CSV ({filteredLeads.length})

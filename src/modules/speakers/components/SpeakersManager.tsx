@@ -195,11 +195,8 @@ export default function SpeakersManager({ siteId, initialSpeakers }: { siteId: s
   return (
     <div className={ui.page}>
       <PageHeader
-        eyebrow="Website"
-        icon={<IconStar size={14} />}
         title="CMO Speakers"
         count={speakers.length}
-        description="The speaker roster shown on the website. Changes go live within a minute."
         actions={
           <button type="button" className={ui.btnPrimary} onClick={() => setDraft(emptyDraft(speakers.length + 1))}>
             <IconPlus size={16} /> Add CMO Speaker

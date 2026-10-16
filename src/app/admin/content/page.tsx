@@ -5,7 +5,6 @@ import ContentEditor from '@/modules/content/components/ContentEditor';
 import SectionsEditor from '@/modules/content/components/SectionsEditor';
 import ChooseSite from '@/modules/sites/components/ChooseSite';
 import { PageHeader } from '@/components/admin/ui';
-import { IconEdit } from '@/components/admin/AdminIcons';
 import ui from '@/components/admin/ui.module.css';
 
 export default async function AdminContentPage() {
@@ -18,16 +17,7 @@ export default async function AdminContentPage() {
 
   return (
     <div className={ui.page}>
-      <PageHeader
-        eyebrow={site.name}
-        icon={<IconEdit size={14} />}
-        title="Content"
-        description={
-          site.builtIn
-            ? 'The words on every section of the website. Saving updates the live pages within a minute.'
-            : `Sections and fields served to ${site.name} by the content API as content.<section>.<field>.`
-        }
-      />
+      <PageHeader title="Content" />
       {site.builtIn ? (
         <ContentEditor initialContent={await getSiteContent()} />
       ) : (

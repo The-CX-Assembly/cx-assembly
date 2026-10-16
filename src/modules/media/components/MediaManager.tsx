@@ -244,10 +244,7 @@ export default function MediaManager({
   return (
     <div className={ui.page}>
       <PageHeader
-        eyebrow="Website"
-        icon={<IconVideo size={14} />}
         title="Videos & PDFs"
-        description="Add videos and downloadable PDFs. Nothing appears on the website until you switch it on."
         actions={
           canWrite &&
           (tab === 'pdfs' ? (
