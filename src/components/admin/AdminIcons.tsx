@@ -43,6 +43,16 @@ export const IconStar = (p: IconProps) => (
   </Icon>
 );
 
+/** Microphone: CMO Speakers. */
+export const IconMic = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+    <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+    <line x1="12" y1="18" x2="12" y2="22" />
+    <line x1="8" y1="22" x2="16" y2="22" />
+  </Icon>
+);
+
 export const IconQuote = (p: IconProps) => (
   <Icon {...p}>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
