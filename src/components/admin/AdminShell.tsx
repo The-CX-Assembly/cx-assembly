@@ -28,9 +28,13 @@ import {
   IconShield,
   IconSidebar,
   IconMic,
+  IconMonitor,
+  IconMoon,
+  IconSun,
   IconVideo,
 } from './AdminIcons';
 import { avatarGradient, initials } from './avatar';
+import { THEMES, saveTheme, type AdminTheme } from './theme';
 
 /** "The CX Assembly" → "CA" */
 const siteInitials = (name: string) => initials(name.replace(/^the\s+/i, ''));
@@ -50,6 +54,8 @@ interface AdminShellProps {
   siteId: string | null;
   speakerCount: number;
   notifications: NotificationFeed;
+  /** Light, dark, or follow the computer (from the cx_admin_theme cookie). */
+  theme: AdminTheme;
   children: React.ReactNode;
 }
 
@@ -73,6 +79,7 @@ export default function AdminShell({
   siteId,
   speakerCount,
   notifications,
+  theme: initialTheme,
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
@@ -85,6 +92,11 @@ export default function AdminShell({
   const [tabsFit, setTabsFit] = useState(Infinity);
   const [switching, setSwitching] = useState(false);
   const [query, setQuery] = useState('');
+  const [theme, setTheme] = useState(initialTheme);
+  const chooseTheme = (next: AdminTheme) => {
+    setTheme(next);
+    saveTheme(next);
+  };
 
   // The bell. Starts from the server; refreshed in the background (below) and
   // replaced whenever the server sends a newer copy (e.g. after a status change).
@@ -251,7 +263,7 @@ export default function AdminShell({
   };
 
   return (
-    <div className={`${styles.shell} ${collapsed ? styles.collapsed : ''}`}>
+    <div className={`${styles.shell} ${collapsed ? styles.collapsed : ''}`} data-theme={theme}>
       {/* ---------- Top bar ---------- */}
       <header className={styles.header}>
         <div className={styles.brand}>
@@ -497,6 +509,28 @@ export default function AdminShell({
                       {user.email}
                     </span>
                     <span className={styles.roleTag}>{ROLE_LABEL[user.role]}</span>
+                  </div>
+                  <div className={styles.themeRow}>
+                    <span>Appearance</span>
+                    <div className={styles.themeSwitch} role="radiogroup" aria-label="Appearance">
+                      {THEMES.map(({ value, label }) => {
+                        const Icon = value === 'light' ? IconSun : value === 'dark' ? IconMoon : IconMonitor;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={theme === value}
+                            aria-label={label}
+                            title={value === 'system' ? 'Match my computer' : label}
+                            className={`${styles.themeOption} ${theme === value ? styles.themeOptionOn : ''}`}
+                            onClick={() => chooseTheme(value)}
+                          >
+                            <Icon size={15} />
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   {site?.url && (
                     <a href={site.url} target="_blank" rel="noopener noreferrer" className={styles.menuItem} role="menuitem">

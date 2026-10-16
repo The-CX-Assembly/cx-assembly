@@ -3,6 +3,8 @@ import { getAdminSiteContext } from '@/modules/sites/services/admin-site.service
 import { getShellSummary } from '@/modules/dashboard/services/dashboard.service';
 import { notificationFeed, siteNamesFor } from '@/modules/leads/services/notifications.service';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { THEME_COOKIE, parseTheme } from '@/components/admin/theme';
 import AdminShell from '@/components/admin/AdminShell';
 
 // The console is private: keep every admin page out of search results.
@@ -20,11 +22,12 @@ export default async function AdminLayout({
 
   // The login screen renders without the shell.
   if (!user) {
-    return <main style={{ minHeight: '100vh', backgroundColor: '#F5F6FA' }}>{children}</main>;
+    return <main style={{ minHeight: '100vh' }}>{children}</main>;
   }
 
   const { sites, site } = await getAdminSiteContext();
   const { newLeads, speakerCount } = await getShellSummary(site?.id ?? null);
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
     <AdminShell
@@ -33,6 +36,7 @@ export default async function AdminLayout({
       siteId={site?.id ?? null}
       speakerCount={speakerCount}
       notifications={notificationFeed(user, newLeads, siteNamesFor(sites))}
+      theme={theme}
     >
       {children}
     </AdminShell>

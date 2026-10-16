@@ -587,7 +587,7 @@ export default function MediaManager({
                     />
                   </div>
                 ) : (
-                  videoDraft.link && <span className={ui.fieldHint} style={{ color: '#B45309' }}>That doesn’t look like a YouTube or Vimeo video link.</span>
+                  videoDraft.link && <span className={ui.fieldHint} style={{ color: 'var(--a-warn)' }}>That doesn’t look like a YouTube or Vimeo video link.</span>
                 )}
               </>
             ) : (

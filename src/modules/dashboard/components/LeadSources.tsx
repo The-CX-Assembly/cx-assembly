@@ -87,7 +87,7 @@ export default function LeadSources({ sources }: { sources: Record<MixRange, Sou
               leads={row.leads}
               approved={row.approved}
               share={Math.round((row.leads / data.total) * 100)}
-              color={NEUTRAL.has(row.label) ? '#C9CDD8' : COLORS[i % COLORS.length]}
+              color={NEUTRAL.has(row.label) ? 'var(--a-gray)' : COLORS[i % COLORS.length]}
             />
           ))}
         </ol>

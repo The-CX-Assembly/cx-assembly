@@ -139,3 +139,18 @@ test('notifications: new lead lights the bell, opening it clears the dot, clicki
   await expect(panel).toContainText(name);
   await expect(panel.getByRole('radio', { name: 'New' })).toHaveAttribute('aria-checked', 'true');
 });
+
+test('appearance: the chosen theme is applied and remembered', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/admin');
+  const shell = page.locator('[data-theme]').first();
+  await expect(shell).toHaveAttribute('data-theme', 'system');
+
+  await page.getByRole('button', { name: /^Account menu/ }).click();
+  await page.getByRole('radio', { name: 'Dark' }).click();
+  await expect(shell).toHaveAttribute('data-theme', 'dark');
+  await expect(shell).toHaveCSS('background-color', 'rgb(14, 17, 23)');
+
+  await page.reload();
+  await expect(page.locator('[data-theme]').first()).toHaveAttribute('data-theme', 'dark');
+});

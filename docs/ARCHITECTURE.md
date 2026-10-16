@@ -118,6 +118,12 @@ All server access goes through the Admin SDK (`src/config/firebase-admin.ts`), w
 - Server actions receive the `siteId` explicitly and check it exists (`siteExists`), so a save always goes to the site the editor was opened for.
 - CX Assembly (`DEFAULT_SITE_ID = 'cx-assembly'`) keeps its original top-level collections; other sites live under `sites/{siteId}/…` (`siteCollection()` picks the right one).
 
+## Admin light & dark mode
+
+- Every admin colour is a token in `components/admin/AdminShell.module.css` written as `light-dark(light, dark)`; the shell's `color-scheme` picks one. The login page has its own `--l-*` tokens.
+- The choice (Light / Dark / System, in the profile menu) is saved in the `cx_admin_theme` cookie (`components/admin/theme.ts`), so the server renders the right theme on the first paint. *System* follows the computer.
+- The public website has no dark mode.
+
 ## Videos & PDFs
 
 - **Nothing is public by default.** Each video/PDF has a *Live* switch, and the home-page video section, `/videos` and `/resources` each have a master switch (`settings/media`). Pages that are switched off return 404 and are left out of the sitemap.
